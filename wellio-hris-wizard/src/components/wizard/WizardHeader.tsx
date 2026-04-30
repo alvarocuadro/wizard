@@ -111,12 +111,11 @@ export function WizardHeader() {
       >
         {hasDraft && (
           <Button
-            size="small"
-            variant="text"
-            color="inherit"
+            size="large"
+            variant="outlined"
             startIcon={<RestoreIcon />}
             onClick={handleLoadDraft}
-            sx={{ color: 'text.secondary' }}
+            sx={actionButtonSx}
           >
             Cargar borrador
           </Button>
