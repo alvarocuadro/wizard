@@ -126,7 +126,7 @@ export function Step3Panel() {
         Selecciona la columna de equipos y configura la jerarquia.
       </Typography>
 
-      <Card variant="outlined" sx={{ mb: 3, borderRadius: 3 }}>
+      <Card variant="outlined" sx={{ mb: 4, borderRadius: 4 }}>
         <CardContent>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
             Archivo fuente
@@ -144,7 +144,7 @@ export function Step3Panel() {
       </Card>
 
       {effectiveSource && (
-        <Box sx={{ mb: 3 }}>
+        <Box sx={{ mb: 4 }}>
           <FormControl fullWidth size="small">
             <InputLabel>Columna de equipos *</InputLabel>
             <Select
@@ -173,7 +173,7 @@ export function Step3Panel() {
           sx={{
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 1fr) 300px' },
-            gap: 3,
+            gap: 4,
             alignItems: 'start',
           }}
         >
@@ -196,7 +196,7 @@ export function Step3Panel() {
                 pr: { xs: 0, lg: 1 },
               }}
             >
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                 {step3.catalog.map((team) => {
                   const otherTeams = step3.catalog.filter((item) => item.id !== team.id);
 
@@ -206,7 +206,7 @@ export function Step3Panel() {
                       variant="outlined"
                       sx={{ borderRadius: 2, borderColor: team.valid ? 'divider' : 'error.light' }}
                     >
-                      <CardContent sx={{ py: '8px !important', px: 2 }}>
+                      <CardContent sx={{ py: '12px !important', px: 2.5 }}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                           <Box
                             sx={{

@@ -16,7 +16,7 @@ export function StepperPills({
   const steps: StepNumber[] = [1, 2, 3, 4, 5];
 
   return (
-    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap', mb: 4 }}>
+    <Box sx={{ display: 'flex', gap: 1.25, justifyContent: 'center', flexWrap: 'wrap', mb: 4.5 }}>
       {steps.map((step) => {
         const isActive = step === currentStep;
         const isPast = step < currentStep;
@@ -36,6 +36,7 @@ export function StepperPills({
               cursor: clickable ? 'pointer' : 'default',
               borderColor: isPast && !isActive ? 'primary.main' : undefined,
               color: isPast && !isActive ? 'primary.main' : undefined,
+              px: 0.5,
             }}
           />
         );

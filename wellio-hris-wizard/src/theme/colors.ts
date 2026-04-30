@@ -12,9 +12,9 @@ export const WELLIO_COLORS = {
     contrastText: '#FFFFFF',
   },
   success: {
-    light: '#D1FAE5',
-    main: '#10B981',
-    dark: '#047857',
+    light: '#EEF8F2',
+    main: '#2F9E6F',
+    dark: '#1F6F4E',
     contrastText: '#FFFFFF',
   },
   error: {
@@ -36,12 +36,22 @@ export const WELLIO_COLORS = {
     contrastText: '#FFFFFF',
   },
   neutral: {
-    light: '#F3F4F6',
-    main: '#D1D5DB',
-    dark: '#6B7280',
+    light: '#F8FAFC',
+    main: '#CBD5E1',
+    dark: '#64748B',
     contrastText: '#000000',
   },
-  background: '#FFFFFF',
-  surface: '#F9FAFB',
-  border: '#E5E7EB',
+  background: '#F5F7FB',
+  surface: '#FFFFFF',
+  border: '#D9E2EC',
+  text: {
+    primary: '#132238',
+    secondary: '#526277',
+    disabled: '#8A97A8',
+  },
+  state: {
+    successSurface: '#F2FAF5',
+    successBorder: '#A7D7BA',
+    successStrong: '#E4F4EA',
+  },
 } as const;

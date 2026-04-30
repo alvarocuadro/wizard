@@ -118,7 +118,7 @@ export function Step2Panel() {
         Seleccioná la columna que contiene los roles del archivo.
       </Typography>
 
-      <Card variant="outlined" sx={{ mb: 3, borderRadius: 3 }}>
+      <Card variant="outlined" sx={{ mb: 4, borderRadius: 4 }}>
         <CardContent>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
             Archivo fuente
@@ -136,7 +136,7 @@ export function Step2Panel() {
       </Card>
 
       {effectiveSource && (
-        <Box sx={{ mb: 3 }}>
+        <Box sx={{ mb: 4 }}>
           <FormControl fullWidth size="small">
             <InputLabel>Columna de roles *</InputLabel>
             <Select
@@ -163,14 +163,14 @@ export function Step2Panel() {
             hasErrors={summary.hasErrors}
             label="roles"
           />
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             {step2.catalog.map((role) => (
               <Card
                 key={role.id}
                 variant="outlined"
                 sx={{ borderRadius: 2, borderColor: role.valid ? 'divider' : 'error.light' }}
               >
-                <CardContent sx={{ py: '8px !important', px: 2 }}>
+                <CardContent sx={{ py: '12px !important', px: 2.5 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
                     <Box sx={{ flex: 1, minWidth: 200 }}>
                       <CharCounterInput

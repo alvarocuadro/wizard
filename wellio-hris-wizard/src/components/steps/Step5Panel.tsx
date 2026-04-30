@@ -90,7 +90,7 @@ export function Step5Panel() {
             label="equipos"
           />
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 4 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mb: 4 }}>
             {step5.assignments.map((assignment) => {
               const uniqueRoles = [
                 ...new Set(assignment.candidates.map((candidate) => candidate.role).filter(Boolean)),
@@ -149,7 +149,7 @@ export function Step5Panel() {
                         Este equipo no tiene asignaciones en el Paso 4.
                       </Typography>
                     ) : (
-                      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                      <Box sx={{ display: 'flex', gap: 2.5, flexWrap: 'wrap' }}>
                         <FormControl size="small" sx={{ minWidth: 220, flex: 1 }} error={roleError}>
                           <InputLabel>Rol lider *</InputLabel>
                           <Select
@@ -252,8 +252,8 @@ export function Step5Panel() {
 
       <Box
         sx={{
-          p: 3,
-          borderRadius: 3,
+          p: 3.5,
+          borderRadius: 4,
           bgcolor: 'primary.light',
           border: '1px solid',
           borderColor: 'primary.main',

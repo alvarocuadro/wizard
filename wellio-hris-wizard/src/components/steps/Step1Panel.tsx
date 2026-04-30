@@ -26,6 +26,7 @@ import { useFileParser } from '../../hooks/useFileParser';
 import { useColumnDetection } from '../../hooks/useColumnDetection';
 import { useRowValidation } from '../../hooks/useRowValidation';
 import { useWizardContext } from '../../context/WizardContext';
+import { wellioTokens } from '../../theme/wellioTokens';
 import { FIELDS, REQUIRED_FIELDS } from '../../utils/fields';
 import { NONE_VALUE, WORK_MODE_VALUES } from '../../utils/constants';
 import { validateFieldValue } from '../../utils/validators';
@@ -41,6 +42,15 @@ import type {
 const NONE_LABEL = '--- No mapear ---';
 const EMPTY_DEFAULT_LABEL = '--- Sin valor ---';
 const DEFAULT_HELPER = 'Se aplicara a todas las filas mientras el campo siga sin mapear.';
+const mappedFieldSx = {
+  backgroundColor: wellioTokens.surfaces.successField,
+  '& .MuiOutlinedInput-notchedOutline': {
+    borderColor: wellioTokens.borders.success,
+  },
+  '&:hover .MuiOutlinedInput-notchedOutline': {
+    borderColor: 'success.main',
+  },
+};
 
 export function Step1Panel() {
   const { state, dispatch } = useWizardContext();
@@ -238,9 +248,15 @@ export function Step1Panel() {
 
   return (
     <Box>
-      <Card variant="outlined" sx={{ mb: 3, borderRadius: 3 }}>
+      <Card variant="outlined" sx={{ mb: 4, borderRadius: 4 }}>
         <CardContent
-          sx={{ display: 'flex', alignItems: 'center', gap: 2, py: '12px !important', px: 2 }}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            py: '16px !important',
+            px: 3,
+          }}
         >
           <CheckCircleIcon color="success" />
           <Box sx={{ flex: 1 }}>
@@ -257,10 +273,7 @@ export function Step1Panel() {
         </CardContent>
       </Card>
 
-      <Accordion
-        defaultExpanded
-        sx={{ mb: 2, borderRadius: '12px !important', '&:before': { display: 'none' } }}
-      >
+      <Accordion defaultExpanded sx={{ mb: 3 }}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography sx={{ fontWeight: 700 }}>Mapeo de campos</Typography>
           <Chip
@@ -271,7 +284,7 @@ export function Step1Panel() {
           />
         </AccordionSummary>
         <AccordionDetails>
-          <Grid container spacing={2}>
+          <Grid container columnSpacing={3} rowSpacing={4}>
             {FIELDS.map((field) => {
               const current = mapping[field.key] ?? NONE_VALUE;
               const isMapped = current !== NONE_VALUE;
@@ -292,7 +305,7 @@ export function Step1Panel() {
                       value={current}
                       label={`${field.label}${field.required ? ' *' : ''}`}
                       onChange={(event) => handleMappingChange(field.key, event.target.value)}
-                      sx={{ bgcolor: isMapped ? 'success.light' : undefined }}
+                      sx={isMapped ? mappedFieldSx : undefined}
                     >
                       {headerOptions.map((option) => (
                         <MenuItem
@@ -315,7 +328,7 @@ export function Step1Panel() {
           </Grid>
 
           {unmappedFields.length > 0 && (
-            <Box sx={{ mt: 3, pt: 2.5, borderTop: '1px solid', borderColor: 'divider' }}>
+            <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid', borderColor: 'divider' }}>
               <Box sx={{ mb: 2 }}>
                 <Typography variant="body2" sx={{ fontWeight: 700, mb: 0.5 }}>
                   Valores por defecto para campos sin mapear
@@ -325,7 +338,7 @@ export function Step1Panel() {
                 </Typography>
               </Box>
 
-              <Grid container spacing={2}>
+              <Grid container columnSpacing={3} rowSpacing={4}>
                 {unmappedFields.map((field) => {
                   const defaultValue = defaultValues[field.key] ?? '';
                   const defaultErrors = validateFieldValue(defaultValue, {
@@ -341,15 +354,19 @@ export function Step1Panel() {
                       <Card
                         variant="outlined"
                         sx={{
-                          borderRadius: 3,
+                          borderRadius: 4,
                           height: '100%',
                           borderColor:
+                            defaultValue.trim().length > 0 && defaultErrors.length === 0
+                              ? 'success.main'
+                              : undefined,
+                          backgroundColor:
                             defaultValue.trim().length > 0 && defaultErrors.length === 0
                               ? 'success.light'
                               : undefined,
                         }}
                       >
-                        <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                        <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
                           <Box
                             sx={{
                               display: 'flex',
@@ -423,7 +440,7 @@ export function Step1Panel() {
           )}
 
           {workModeIsMapped && (
-            <Box sx={{ mt: 3, pt: 2.5, borderTop: '1px solid', borderColor: 'divider' }}>
+            <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid', borderColor: 'divider' }}>
               <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
                 Valores de modalidad en el archivo
               </Typography>
@@ -436,7 +453,7 @@ export function Step1Panel() {
                   : 'No se encontraron valores en la columna seleccionada.'}
               </Typography>
               {uniqueWmValues.length > 0 && (
-                <Grid container spacing={2}>
+                <Grid container columnSpacing={3} rowSpacing={4}>
                   {WORK_MODE_VALUES.map((mode) => (
                     <Grid key={mode} size={{ xs: 12, sm: 4 }}>
                       <FormControl size="small" fullWidth>
@@ -468,7 +485,7 @@ export function Step1Panel() {
         </AccordionDetails>
       </Accordion>
 
-      <Card variant="outlined" sx={{ mb: 2, borderRadius: 3 }}>
+      <Card variant="outlined" sx={{ mb: 3, borderRadius: 4 }}>
         <CardContent>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
             Vista previa
@@ -476,7 +493,7 @@ export function Step1Panel() {
           <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
             Primeras filas del archivo para validar rapido si el mapeo propuesto es correcto.
           </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             {previewFields.map(({ field, columnName, values, isDefault }) => (
               <Box key={field.key}>
                 <Box
@@ -511,7 +528,7 @@ export function Step1Panel() {
         </CardContent>
       </Card>
 
-      <Box sx={{ mb: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
+      <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
         <Button
           variant="outlined"
           startIcon={<RefreshIcon />}
@@ -537,7 +554,7 @@ export function Step1Panel() {
             label="filas"
           />
           {invalidResults.length > 0 && (
-            <Accordion sx={{ borderRadius: '12px !important', '&:before': { display: 'none' } }}>
+            <Accordion>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography sx={{ fontWeight: 600, color: 'warning.dark' }}>
                   {invalidResults.length} filas con errores (no se exportaran)
@@ -605,12 +622,13 @@ function InvalidRowCard({
       variant="outlined"
       sx={{
         mb: 2,
-        borderRadius: 2,
-        borderColor: result.omitted ? 'divider' : allResolved ? 'success.light' : 'warning.light',
+        borderRadius: 3,
+        borderColor: result.omitted ? 'divider' : allResolved ? 'success.main' : 'warning.light',
+        backgroundColor: allResolved && !result.omitted ? 'success.light' : undefined,
         opacity: result.omitted ? 0.6 : 1,
       }}
     >
-      <CardContent sx={{ py: '10px !important', px: 2 }}>
+      <CardContent sx={{ py: '14px !important', px: 2.5 }}>
         <Box
           sx={{
             display: 'flex',
@@ -655,7 +673,7 @@ function InvalidRowCard({
         {editableFields.length > 0 && (
           <>
             <Divider sx={{ my: 1 }} />
-            <Grid container spacing={1}>
+            <Grid container columnSpacing={2} rowSpacing={1.5}>
               {editableFields.map((field) => (
                 <Grid key={field.key} size={{ xs: 12, sm: 6 }}>
                   <TextField

@@ -23,7 +23,9 @@ export const wellioTokens = {
   spacing: {
     xs: 4,
     sm: 8,
+    form: 12,
     md: 16,
+    section: 20,
     lg: 24,
     xl: 32,
     '2xl': 48,
@@ -32,7 +34,19 @@ export const wellioTokens = {
     small: 4,
     medium: 8,
     large: 12,
+    xl: 18,
     full: 999,
+  },
+  surfaces: {
+    page: WELLIO_COLORS.background,
+    card: WELLIO_COLORS.surface,
+    cardSubtle: WELLIO_COLORS.neutral.light,
+    successField: WELLIO_COLORS.state.successSurface,
+    successFieldStrong: WELLIO_COLORS.state.successStrong,
+  },
+  borders: {
+    subtle: WELLIO_COLORS.border,
+    success: WELLIO_COLORS.state.successBorder,
   },
   shadows: {
     sm: '0 1px 2px 0 rgba(0,0,0,0.05)',

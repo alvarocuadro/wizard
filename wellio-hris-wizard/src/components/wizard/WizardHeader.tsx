@@ -66,7 +66,14 @@ export function WizardHeader() {
   }
 
   return (
-    <Box sx={{ textAlign: 'center', mb: 4, position: 'relative' }}>
+    <Box
+      sx={{
+        textAlign: 'center',
+        mb: 5,
+        position: 'relative',
+        px: { xs: 1, md: 0 },
+      }}
+    >
       <Box
         sx={{
           position: 'absolute',
@@ -116,13 +123,16 @@ export function WizardHeader() {
       <Typography variant="h4" gutterBottom sx={{ fontWeight: 800, color: 'primary.main' }}>
         Wizard HRIS
       </Typography>
-      <Typography variant="subtitle1" sx={{ color: 'text.secondary' }}>
+      <Typography variant="subtitle1" sx={{ color: 'text.secondary', maxWidth: 720, mx: 'auto' }}>
         Configuracion inicial de la estructura organizacional
       </Typography>
 
       {(status || savedAtLabel) && (
         <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-          <Alert severity="info" sx={{ borderRadius: 2, maxWidth: 520, width: '100%', textAlign: 'left' }}>
+          <Alert
+            severity="info"
+            sx={{ borderRadius: 3, maxWidth: 560, width: '100%', textAlign: 'left' }}
+          >
             {status ?? `Borrador disponible. Ultimo guardado: ${savedAtLabel}.`}
           </Alert>
         </Box>

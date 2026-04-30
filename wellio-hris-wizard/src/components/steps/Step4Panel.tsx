@@ -134,7 +134,7 @@ export function Step4Panel() {
         Mapeá las columnas de miembro, rol y equipo para construir las asignaciones.
       </Typography>
 
-      <Card variant="outlined" sx={{ mb: 3, borderRadius: 3 }}>
+      <Card variant="outlined" sx={{ mb: 4, borderRadius: 4 }}>
         <CardContent>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
             Archivo fuente
@@ -152,12 +152,12 @@ export function Step4Panel() {
       </Card>
 
       {effectiveSource && (
-        <Card variant="outlined" sx={{ mb: 3, borderRadius: 3 }}>
+        <Card variant="outlined" sx={{ mb: 4, borderRadius: 4 }}>
           <CardContent>
             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>
               Mapeo de columnas
             </Typography>
-            <Grid container spacing={2}>
+            <Grid container columnSpacing={3} rowSpacing={2.5}>
               {(Object.keys(MAPPING_LABELS) as (keyof AssignmentColumnMapping)[]).map((key) => (
                 <Grid key={key} size={{ xs: 12, sm: 4 }}>
                   <FormControl fullWidth size="small">
@@ -191,18 +191,18 @@ export function Step4Panel() {
             label="asignaciones"
           />
           {invalidItems.length > 0 && (
-            <Box sx={{ mt: 2 }}>
+            <Box sx={{ mt: 3 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'warning.dark' }}>
                 Asignaciones con errores ({invalidItems.length})
               </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                 {invalidItems.slice(0, 15).map((item) => (
                   <Card
                     key={item.sourceRow}
                     variant="outlined"
                     sx={{ borderRadius: 2, borderColor: 'warning.light' }}
                   >
-                    <CardContent sx={{ py: '8px !important', px: 2 }}>
+                    <CardContent sx={{ py: '12px !important', px: 2.5 }}>
                       <Box
                         sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}
                       >
