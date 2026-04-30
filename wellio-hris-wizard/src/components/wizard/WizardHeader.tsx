@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Box, Typography, Button, Alert } from '@mui/material';
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import RestoreIcon from '@mui/icons-material/Restore';
 import { useWizardContext } from '../../context/WizardContext';
+import { FeatherRefreshCwIcon, FeatherSaveIcon } from '../ui/icons/FeatherIcons';
 import type { WizardState } from '../../utils/types';
 
 const DRAFT_STORAGE_KEY = 'wellio-hris-wizard-draft-v1';
@@ -65,6 +64,30 @@ export function WizardHeader() {
     setStatus('Borrador cargado.');
   }
 
+  const actionButtonSx = {
+    minHeight: 52,
+    px: 2.5,
+    borderRadius: 2.5,
+    borderWidth: 2,
+    color: 'primary.main',
+    borderColor: 'primary.main',
+    backgroundColor: 'background.paper',
+    fontSize: '0.95rem',
+    fontWeight: 700,
+    letterSpacing: '-0.01em',
+    '& .MuiButton-startIcon': {
+      marginRight: 1.25,
+    },
+    '& .MuiSvgIcon-root': {
+      fontSize: 22,
+    },
+    '&:hover': {
+      borderWidth: 2,
+      borderColor: 'primary.dark',
+      backgroundColor: 'rgba(124,58,237,0.06)',
+    },
+  } as const;
+
   return (
     <Box
       sx={{
@@ -80,10 +103,10 @@ export function WizardHeader() {
           right: 0,
           top: 0,
           display: 'flex',
-          gap: 1,
+          gap: 1.25,
           flexWrap: 'wrap',
           justifyContent: 'flex-end',
-          maxWidth: { xs: '100%', md: 420 },
+          maxWidth: { xs: '100%', md: 640 },
         }}
       >
         {hasDraft && (
@@ -99,22 +122,20 @@ export function WizardHeader() {
           </Button>
         )}
         <Button
-          size="small"
-          variant="text"
-          color="inherit"
-          startIcon={<SaveOutlinedIcon />}
+          size="large"
+          variant="outlined"
+          startIcon={<FeatherSaveIcon />}
           onClick={handleSaveDraft}
-          sx={{ color: 'text.secondary' }}
+          sx={actionButtonSx}
         >
-          Guardar borrador y seguir mas tarde
+          Guardar borrador
         </Button>
         <Button
-          size="small"
-          variant="text"
-          color="inherit"
-          startIcon={<RestartAltIcon />}
+          size="large"
+          variant="outlined"
+          startIcon={<FeatherRefreshCwIcon />}
           onClick={() => window.location.reload()}
-          sx={{ color: 'text.disabled' }}
+          sx={actionButtonSx}
         >
           Reiniciar
         </Button>

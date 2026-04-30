@@ -1,13 +1,12 @@
 import { useRef, useState } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
-import UploadFileIcon from '@mui/icons-material/UploadFile';
+import { FeatherUploadIcon } from './icons/FeatherIcons';
 
 interface FileUploadZoneProps {
   onFile: (file: File) => void;
   loading?: boolean;
   error?: string | null;
   accept?: string;
-  label?: string;
 }
 
 export function FileUploadZone({
@@ -15,7 +14,6 @@ export function FileUploadZone({
   loading = false,
   error,
   accept = '.xlsx,.xls,.csv',
-  label = 'Arrastrá o hacé click para subir tu archivo',
 }: FileUploadZoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
@@ -44,22 +42,30 @@ export function FileUploadZone({
           inputRef.current?.click();
         }
       }}
-      onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragging(true);
+      }}
       onDragLeave={() => setDragging(false)}
       onDrop={handleDrop}
       sx={{
-        border: '2px dashed',
+        border: '1px dashed',
         borderColor: dragging ? 'primary.main' : error ? 'error.main' : 'divider',
         borderRadius: 3,
-        p: 5,
+        minHeight: { xs: 220, md: 182 },
+        px: { xs: 3, md: 4 },
+        py: { xs: 4, md: 4.5 },
         textAlign: 'center',
         cursor: loading ? 'default' : 'pointer',
-        transition: 'all 0.2s',
+        transition: 'all 0.2s ease',
         outline: 'none',
-        bgcolor: dragging ? 'action.hover' : 'background.paper',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        bgcolor: dragging ? 'rgba(124,58,237,0.04)' : 'background.paper',
         '&:hover': {
           borderColor: loading ? 'divider' : 'primary.main',
-          bgcolor: loading ? 'background.paper' : 'action.hover',
+          bgcolor: loading ? 'background.paper' : 'rgba(124,58,237,0.03)',
         },
         '&:focus-visible': {
           outline: '2px solid',
@@ -78,20 +84,55 @@ export function FileUploadZone({
       {loading ? (
         <CircularProgress size={36} />
       ) : (
-        <>
-          <UploadFileIcon sx={{ fontSize: 44, color: 'primary.main', mb: 1 }} />
-          <Typography variant="body1" gutterBottom sx={{ fontWeight: 600 }}>
-            {label}
+        <Box sx={{ width: '100%', maxWidth: 460, mx: 'auto' }}>
+          <FeatherUploadIcon sx={{ fontSize: 34, color: '#B0B0B8', mb: 1.75 }} />
+          <Typography
+            variant="h5"
+            gutterBottom
+            sx={{
+              fontWeight: 700,
+              color: '#A9A9B2',
+              mb: 0.75,
+              lineHeight: 1.15,
+              letterSpacing: '-0.02em',
+              fontSize: { xs: '1.55rem', md: '1.9rem' },
+            }}
+          >
+            Arrasta tu archivo aqui
           </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            Formatos aceptados: .xlsx, .xls, .csv
+          <Typography
+            variant="body1"
+            sx={{
+              color: '#B1B1BA',
+              mb: 0.75,
+              lineHeight: 1.35,
+              fontSize: { xs: '1rem', md: '1.05rem' },
+            }}
+          >
+            o{' '}
+            <Box component="span" sx={{ color: '#B59CFF', fontWeight: 700 }}>
+              haz click
+            </Box>{' '}
+            y cargalo desde tu dispositivo
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{
+              color: '#B1B1BA',
+              maxWidth: 360,
+              mx: 'auto',
+              fontSize: { xs: '0.92rem', md: '0.96rem' },
+              lineHeight: 1.45,
+            }}
+          >
+            Puedes cargar archivos xlsx, xls, csv.
           </Typography>
           {error && (
-            <Typography variant="caption" sx={{ color: 'error.main', display: 'block', mt: 1 }}>
+            <Typography variant="caption" sx={{ color: 'error.main', display: 'block', mt: 1.5 }}>
               {error}
             </Typography>
           )}
-        </>
+        </Box>
       )}
     </Box>
   );
