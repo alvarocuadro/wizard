@@ -2,6 +2,17 @@ import { useCallback } from 'react';
 import { normalize } from '../utils/normalize';
 import type { TeamCatalogItem, AssignmentItem, LeaderAssignment } from '../utils/types';
 
+function getUniqueRoles(candidates: AssignmentItem[]): string[] {
+  return candidates
+    .map((candidate) => candidate.role.trim())
+    .filter(Boolean)
+    .filter(
+      (role, index, arr) =>
+        arr.findIndex((value) => normalize(value) === normalize(role)) === index
+    )
+    .sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+}
+
 function getPersonsForRole(candidates: AssignmentItem[], leaderRole: string): string[] {
   if (!leaderRole.trim()) return [];
   return candidates
@@ -62,12 +73,17 @@ export function useLeadersCatalog() {
           (assignment) => assignment.valid && normalize(assignment.team) === normalize(team.name)
         );
         const existing = prevByTeamId.get(team.id);
+        const uniqueRoles = getUniqueRoles(candidates);
+        const autoLeaderRole = uniqueRoles.length === 1 ? uniqueRoles[0] : '';
+        const autoLeaderPersons = autoLeaderRole ? getPersonsForRole(candidates, autoLeaderRole) : [];
+        const hasExistingLeaderPersons = (existing?.leaderPersons?.length ?? 0) > 0;
         const item: LeaderAssignment = {
           teamId: team.id,
           teamName: team.name,
-          leaderRole: existing?.leaderRole ?? '',
-          leaderSelectionMode: existing?.leaderSelectionMode ?? 'specific',
-          leaderPersons: existing?.leaderPersons ?? [],
+          leaderRole: existing?.leaderRole || autoLeaderRole,
+          leaderSelectionMode:
+            existing?.leaderSelectionMode ?? (autoLeaderPersons.length > 1 ? 'all' : 'specific'),
+          leaderPersons: hasExistingLeaderPersons ? existing!.leaderPersons : autoLeaderPersons,
           candidates,
           errors: [],
           valid: true,
