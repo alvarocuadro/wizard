@@ -1,7 +1,15 @@
 import { useCallback, useState } from 'react';
 import { normalize } from '../utils/normalize';
 import { useWizardContext } from '../context/WizardContext';
-import type { FinalOutput, TeamOutput, RoleGroup, MemberRef, TeamCatalogItem, AssignmentItem, LeaderAssignment } from '../utils/types';
+import type {
+  FinalOutput,
+  TeamOutput,
+  RoleGroup,
+  MemberRef,
+  TeamCatalogItem,
+  AssignmentItem,
+  LeaderAssignment,
+} from '../utils/types';
 
 function splitMemberName(label: string): MemberRef {
   const raw = String(label ?? '').trim();
@@ -9,6 +17,25 @@ function splitMemberName(label: string): MemberRef {
   const parts = raw.split(/\s+/).filter(Boolean);
   if (parts.length === 1) return { name: parts[0], lastName: '' };
   return { name: parts.slice(0, -1).join(' '), lastName: parts.slice(-1).join(' ') };
+}
+
+function buildRoleGroup(
+  roleName: string,
+  members: string[],
+  teamName: string,
+  isTeamLead: boolean,
+  leaderRoleName?: string
+): RoleGroup | null {
+  if (members.length === 0) return null;
+  return {
+    roleTypeId: roleName,
+    members: members.map((member) => splitMemberName(member)),
+    teamId: teamName,
+    isTeamLead,
+    minQty: members.length > 0 ? 1 : 0,
+    maxQty: members.length,
+    parentsRolesId: isTeamLead ? [] : leaderRoleName ? [leaderRoleName] : [],
+  };
 }
 
 function buildTeamOutput(
@@ -41,32 +68,44 @@ function buildTeamOutput(
     grouped.get(key)!.push(item);
   });
 
-  const roles: RoleGroup[] = Array.from(grouped.entries()).map(([roleName, items]) => {
-    const members = items.map((it) => splitMemberName(it.member));
-    const isTeamLead = !!leaderCfg && normalize(leaderCfg.leaderRole) === normalize(roleName);
-    return {
-      roleTypeId: roleName,
-      members,
-      teamId: team.name,
-      isTeamLead,
-      minQty: members.length > 0 ? 1 : 0,
-      maxQty: members.length,
-      parentsRolesId: isTeamLead ? [] : leaderCfg?.leaderRole ? [leaderCfg.leaderRole] : [],
-    };
+  const roles: RoleGroup[] = [];
+
+  Array.from(grouped.entries()).forEach(([roleName, items]) => {
+    const roleMembers = items.map((it) => it.member);
+    const isLeaderRole = !!leaderCfg && normalize(leaderCfg.leaderRole) === normalize(roleName);
+
+    if (!isLeaderRole) {
+      const group = buildRoleGroup(roleName, roleMembers, team.name, false, leaderCfg?.leaderRole);
+      if (group) roles.push(group);
+      return;
+    }
+
+    const selectedLeaders = roleMembers.filter((member) =>
+      leaderCfg.leaderPersons.some((leader) => normalize(leader) === normalize(member))
+    );
+    const remainingMembers = roleMembers.filter(
+      (member) => !selectedLeaders.some((leader) => normalize(leader) === normalize(member))
+    );
+
+    const leaderGroup = buildRoleGroup(roleName, selectedLeaders, team.name, true);
+    if (leaderGroup) roles.push(leaderGroup);
+
+    const regularGroup = buildRoleGroup(roleName, remainingMembers, team.name, false);
+    if (regularGroup) roles.push(regularGroup);
   });
 
-  if (leaderCfg?.leaderRole && leaderCfg?.leaderPerson) {
-    const exists = roles.some((r) => normalize(r.roleTypeId) === normalize(leaderCfg.leaderRole));
+  if (leaderCfg?.leaderRole && leaderCfg.leaderPersons.length > 0) {
+    const exists = roles.some(
+      (r) => normalize(r.roleTypeId) === normalize(leaderCfg.leaderRole) && r.isTeamLead
+    );
     if (!exists) {
-      roles.unshift({
-        roleTypeId: leaderCfg.leaderRole,
-        members: [splitMemberName(leaderCfg.leaderPerson)],
-        teamId: team.name,
-        isTeamLead: true,
-        minQty: 1,
-        maxQty: 1,
-        parentsRolesId: [],
-      });
+      const fallbackGroup = buildRoleGroup(
+        leaderCfg.leaderRole,
+        leaderCfg.leaderPersons,
+        team.name,
+        true
+      );
+      if (fallbackGroup) roles.unshift(fallbackGroup);
     }
   }
 

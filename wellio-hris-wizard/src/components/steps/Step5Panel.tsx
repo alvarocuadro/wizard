@@ -10,6 +10,8 @@ import {
   MenuItem,
   Button,
   Chip,
+  FormHelperText,
+  OutlinedInput,
 } from '@mui/material';
 import DataObjectIcon from '@mui/icons-material/DataObject';
 import { ValidationSummaryBanner } from '../ui/ValidationSummaryBanner';
@@ -19,6 +21,10 @@ import { useLeadersCatalog } from '../../hooks/useLeadersCatalog';
 import { useFinalJsonBuilder } from '../../hooks/useFinalJsonBuilder';
 import { normalize } from '../../utils/normalize';
 import type { LeaderAssignment } from '../../utils/types';
+
+const ROLE_ERROR_PREFIX = 'Rol lider';
+const PERSON_ERROR_PREFIX = 'Persona lider';
+const EMPTY_OPTION_LABEL = '--- Selecciona ---';
 
 export function Step5Panel() {
   const { state, dispatch } = useWizardContext();
@@ -40,21 +46,21 @@ export function Step5Panel() {
   }
 
   function handleGenerateJson() {
-    const j = buildJson();
-    setJson(j);
+    const nextJson = buildJson();
+    setJson(nextJson);
     setJsonModalOpen(true);
   }
 
   const summary = leadersCatalog.summary(step5.assignments);
-  const ownTeamsCount = step3.catalog.filter((t) => t.leadershipMode === 'own').length;
+  const ownTeamsCount = step3.catalog.filter((team) => team.leadershipMode === 'own').length;
 
   return (
     <Box>
       <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
-        Paso 5: Asignación de líderes
+        Paso 5: Asignacion de lideres
       </Typography>
       <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
-        Para cada equipo con liderazgo propio, seleccioná el rol y la persona líder.
+        Para cada equipo con liderazgo propio, selecciona el rol y define si lideran una o varias personas, o todo el rol.
       </Typography>
 
       {ownTeamsCount === 0 && (
@@ -87,16 +93,24 @@ export function Step5Panel() {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 4 }}>
             {step5.assignments.map((assignment) => {
               const uniqueRoles = [
-                ...new Set(assignment.candidates.map((c) => c.role).filter(Boolean)),
+                ...new Set(assignment.candidates.map((candidate) => candidate.role).filter(Boolean)),
               ].sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
 
               const personsForRole = assignment.leaderRole
                 ? assignment.candidates
-                    .filter((c) => normalize(c.role) === normalize(assignment.leaderRole))
-                    .map((c) => c.member)
-                    .filter((m, i, arr) => arr.indexOf(m) === i)
+                    .filter((candidate) => normalize(candidate.role) === normalize(assignment.leaderRole))
+                    .map((candidate) => candidate.member)
+                    .filter(
+                      (member, index, arr) =>
+                        arr.findIndex((value) => normalize(value) === normalize(member)) === index
+                    )
                     .sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }))
                 : [];
+
+              const hasSingleCandidate = personsForRole.length === 1;
+              const isAllMode = assignment.leaderSelectionMode === 'all';
+              const roleError = assignment.errors.some((error) => error.includes(ROLE_ERROR_PREFIX));
+              const personError = assignment.errors.some((error) => error.includes(PERSON_ERROR_PREFIX));
 
               return (
                 <Card
@@ -136,48 +150,94 @@ export function Step5Panel() {
                       </Typography>
                     ) : (
                       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                        <FormControl size="small" sx={{ minWidth: 220, flex: 1 }}>
-                          <InputLabel>Rol líder *</InputLabel>
+                        <FormControl size="small" sx={{ minWidth: 220, flex: 1 }} error={roleError}>
+                          <InputLabel>Rol lider *</InputLabel>
                           <Select
                             value={assignment.leaderRole}
-                            label="Rol líder *"
-                            onChange={(e) =>
-                              handleLeaderChange(assignment.teamId, { leaderRole: e.target.value })
+                            label="Rol lider *"
+                            onChange={(event) =>
+                              handleLeaderChange(assignment.teamId, { leaderRole: event.target.value })
                             }
-                            error={assignment.errors.some((e) => e.includes('Rol líder'))}
                           >
-                            <MenuItem value="">— Seleccioná —</MenuItem>
+                            <MenuItem value="">{EMPTY_OPTION_LABEL}</MenuItem>
                             {uniqueRoles.map((role) => (
                               <MenuItem key={role} value={role}>{role}</MenuItem>
                             ))}
                           </Select>
                         </FormControl>
 
-                        <FormControl size="small" sx={{ minWidth: 220, flex: 1 }}>
-                          <InputLabel>Persona líder *</InputLabel>
+                        <FormControl
+                          size="small"
+                          sx={{ minWidth: 220, flex: 1 }}
+                          disabled={!assignment.leaderRole || hasSingleCandidate}
+                        >
+                          <InputLabel>Alcance del liderazgo</InputLabel>
                           <Select
-                            value={assignment.leaderPerson}
-                            label="Persona líder *"
-                            disabled={!assignment.leaderRole}
-                            onChange={(e) =>
-                              handleLeaderChange(assignment.teamId, { leaderPerson: e.target.value })
+                            value={assignment.leaderSelectionMode}
+                            label="Alcance del liderazgo"
+                            onChange={(event) =>
+                              handleLeaderChange(assignment.teamId, {
+                                leaderSelectionMode: event.target.value as LeaderAssignment['leaderSelectionMode'],
+                              })
                             }
-                            error={assignment.errors.some((e) => e.includes('Persona líder'))}
                           >
-                            <MenuItem value="">— Seleccioná —</MenuItem>
+                            <MenuItem value="specific">Miembros especificos</MenuItem>
+                            <MenuItem value="all">Todos los miembros del rol</MenuItem>
+                          </Select>
+                          {hasSingleCandidate && (
+                            <FormHelperText>
+                              Se autocompleta porque este rol tiene una sola persona asignada.
+                            </FormHelperText>
+                          )}
+                        </FormControl>
+
+                        <FormControl
+                          size="small"
+                          sx={{ minWidth: 260, flex: 1 }}
+                          disabled={!assignment.leaderRole || isAllMode || hasSingleCandidate}
+                          error={personError}
+                        >
+                          <InputLabel>Persona/s lider *</InputLabel>
+                          <Select
+                            multiple
+                            value={assignment.leaderPersons}
+                            input={<OutlinedInput label="Persona/s lider *" />}
+                            renderValue={(selected) => {
+                              const values = selected as string[];
+                              return values.length > 0 ? values.join(', ') : EMPTY_OPTION_LABEL;
+                            }}
+                            onChange={(event) =>
+                              handleLeaderChange(assignment.teamId, {
+                                leaderPersons:
+                                  typeof event.target.value === 'string'
+                                    ? [event.target.value]
+                                    : event.target.value,
+                              })
+                            }
+                          >
                             {personsForRole.map((person) => (
                               <MenuItem key={person} value={person}>{person}</MenuItem>
                             ))}
                           </Select>
+                          {isAllMode && (
+                            <FormHelperText>
+                              Se marcaran como lider todas las personas de este rol dentro del equipo.
+                            </FormHelperText>
+                          )}
+                          {hasSingleCandidate && (
+                            <FormHelperText>
+                              Miembro autoseleccionado: {personsForRole[0]}
+                            </FormHelperText>
+                          )}
                         </FormControl>
                       </Box>
                     )}
 
                     {!assignment.valid && (
                       <Box sx={{ mt: 1 }}>
-                        {assignment.errors.map((e) => (
-                          <Typography key={e} variant="caption" sx={{ color: 'error.main', display: 'block' }}>
-                            • {e}
+                        {assignment.errors.map((error) => (
+                          <Typography key={error} variant="caption" sx={{ color: 'error.main', display: 'block' }}>
+                            - {error}
                           </Typography>
                         ))}
                       </Box>
@@ -190,7 +250,6 @@ export function Step5Panel() {
         </Box>
       )}
 
-      {/* Generate JSON */}
       <Box
         sx={{
           p: 3,
@@ -210,8 +269,7 @@ export function Step5Panel() {
             Estructura lista para exportar
           </Typography>
           <Typography variant="body2" sx={{ color: 'primary.dark' }}>
-            {step3.catalog.length} equipos · {step4.catalog.filter((a) => a.valid).length} asignaciones
-            válidas
+            {step3.catalog.length} equipos · {step4.catalog.filter((assignment) => assignment.valid).length} asignaciones validas
           </Typography>
         </Box>
         <Button

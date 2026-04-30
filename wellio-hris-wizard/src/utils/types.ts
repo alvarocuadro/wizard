@@ -88,11 +88,14 @@ export interface AssignmentItem {
   valid: boolean;
 }
 
+export type LeaderSelectionMode = 'specific' | 'all';
+
 export interface LeaderAssignment {
   teamId: string;
   teamName: string;
   leaderRole: string;
-  leaderPerson: string;
+  leaderSelectionMode: LeaderSelectionMode;
+  leaderPersons: string[];
   candidates: AssignmentItem[];
   errors: string[];
   valid: boolean;

@@ -20,7 +20,8 @@ import type { StepNumber } from './utils/types';
 
 function WizardContent() {
   const { state } = useWizardContext();
-  const { currentStep, canAdvance, blockReason, goNext, goBack, goTo } = useWizardNavigation();
+  const { currentStep, canAdvance, blockReason, goNext, goBack, goTo, highestAvailableStep } =
+    useWizardNavigation();
 
   const panels: Record<StepNumber, ReactElement> = {
     1: <Step1Panel />,
@@ -33,7 +34,11 @@ function WizardContent() {
   return (
     <WizardLayout>
       <WizardHeader />
-      <StepperPills currentStep={currentStep} onGoTo={goTo} />
+      <StepperPills
+        currentStep={currentStep}
+        highestAvailableStep={highestAvailableStep}
+        onGoTo={goTo}
+      />
       <Paper
         elevation={0}
         variant="outlined"
