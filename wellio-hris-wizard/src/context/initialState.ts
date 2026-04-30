@@ -13,6 +13,7 @@ export const initialState: WizardState = {
   step1: {
     source: null,
     mapping: {},
+    defaultValues: {},
     workModeValueMap: { Presencial: '', Híbrido: '', Remoto: '' },
     validationResults: [],
     processedRows: [],

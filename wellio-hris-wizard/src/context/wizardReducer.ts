@@ -22,6 +22,7 @@ export type WizardAction =
   // Step 1
   | { type: 'S1_SET_SOURCE'; payload: FileParseResult }
   | { type: 'S1_SET_MAPPING'; payload: FieldMapping }
+  | { type: 'S1_SET_DEFAULT_VALUES'; payload: WizardState['step1']['defaultValues'] }
   | { type: 'S1_SET_WORKMODE_MAP'; payload: WorkModeValueMap }
   | { type: 'S1_SET_VALIDATION'; payload: { results: ValidationResult[]; processedRows: ProcessedRow[] } }
   | { type: 'S1_UPDATE_ROW'; payload: { index: number; normalized: NormalizedRow } }
@@ -78,6 +79,8 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
       return { ...state, step1: { ...state.step1, source: action.payload } };
     case 'S1_SET_MAPPING':
       return { ...state, step1: { ...state.step1, mapping: action.payload } };
+    case 'S1_SET_DEFAULT_VALUES':
+      return { ...state, step1: { ...state.step1, defaultValues: action.payload } };
     case 'S1_SET_WORKMODE_MAP':
       return { ...state, step1: { ...state.step1, workModeValueMap: action.payload } };
     case 'S1_SET_VALIDATION':

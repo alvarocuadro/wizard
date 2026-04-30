@@ -31,6 +31,10 @@ export interface FieldMapping {
   [fieldKey: string]: string;
 }
 
+export interface FieldDefaultValues {
+  [fieldKey: string]: string;
+}
+
 export interface RowMeta {
   [key: string]: string | boolean | null;
 }
@@ -134,6 +138,7 @@ export interface FinalOutput {
 export interface Step1State {
   source: FileParseResult | null;
   mapping: FieldMapping;
+  defaultValues: FieldDefaultValues;
   workModeValueMap: WorkModeValueMap;
   validationResults: ValidationResult[];
   processedRows: ProcessedRow[];

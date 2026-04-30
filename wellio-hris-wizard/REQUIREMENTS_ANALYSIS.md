@@ -48,6 +48,7 @@ Paso 5: LÃ­deres     â†’ asignaciÃ³n de lÃ­der por equipo con lideraz
 | P1-15 | Descarga CSV de filas con errores | MEDIA |
 | P1-16 | ExportaciÃ³n JSON del mapeo completo | BAJA |
 | P1-17 | Mapeo especial para `workMode`: alias por valor ("Presencial"/"HÃ­brido"/"Remoto") | ALTA |
+| P1-18 | Valores por defecto masivos solo para campos opcionales sin mapear | ALTA |
 
 ### 3.2 Campos definidos
 
@@ -110,6 +111,8 @@ El sistema debe detectar y convertir estos formatos a `DD/MM/AAAA`:
 - Loader (Skeleton) mientras se procesa el archivo
 - Grilla de mapeo: badge por campo (OK verde / Requerido rojo / Opcional gris)
 - Columna mapeada no puede asignarse a dos campos distintos (opciÃ³n deshabilitada en otros selects)
+- Los campos obligatorios deben mapearse siempre a una columna real; no admiten valor por defecto
+- Los valores por defecto masivos se configuran en una secciÃ³n separada para campos opcionales sin mapear
 - Chips de preview con datos reales de las primeras 8 filas
 - Editor de filas con errores: contador de caracteres en campos con maxLength
 - Botones "Descargar" con loader hasta completar
@@ -167,13 +170,14 @@ Scoring:
 | P3-03 | SelecciÃ³n de columna de equipos (con detecciÃ³n automÃ¡tica) | ALTA |
 | P3-04 | Listado de equipos Ãºnicos ordenados alfabÃ©ticamente | ALTA |
 | P3-05 | Por equipo: ediciÃ³n de nombre (max 40 chars) | ALTA |
-| P3-06 | Por equipo: radio "Equipo principal" (exactamente 1) | ALTA |
+| P3-06 | Por equipo: interruptor / switch "Es equipo principal" (exactamente 1 activo) | ALTA |
 | P3-07 | Por equipo: select "Modo de liderazgo" (Propio / Hereda) | ALTA |
 | P3-08 | Por equipo (no principal): checkboxes de equipos padre (multi-select) | ALTA |
 | P3-09 | ValidaciÃ³n de loop jerÃ¡rquico (DFS) | ALTA |
 | P3-10 | ValidaciÃ³n: exactamente 1 equipo principal | ALTA |
 | P3-11 | Preview de Ã¡rbol jerÃ¡rquico en texto | ALTA |
 | P3-12 | Resumen de validaciÃ³n | ALTA |
+| P3-13 | Layout en 2 columnas: listado de equipos con scroll independiente + Ã¡rbol siempre visible | ALTA |
 
 ### 5.2 DetecciÃ³n automÃ¡tica de columna
 
@@ -208,7 +212,9 @@ CompanyRoot
 - Contador de caracteres "X/40"
 - ValidaciÃ³n en tiempo real al editar nombre o cambiar jerarquÃ­a
 - Error visual si hay loop o mÃºltiples principales
+- `Es equipo principal` se presenta con switch/interruptor en vez de radio
 - Preview de Ã¡rbol actualizado on-change
+- En desktop, el listado de equipos tiene scroll propio y la vista de Ã¡rbol permanece visible en una segunda columna
 - Los padres del equipo principal no se muestran (no aplica)
 
 ---
@@ -955,3 +961,130 @@ El prototipo re-detecta el catÃ¡logo al cambiar la columna pero intenta preser
 |----|--------|
 | CR-09 Navegacion por breadcrumb con persistencia | Implementado |
 | CR-10 Habilitacion progresiva del breadcrumb | Implementado |
+
+---
+
+## 21. CAMBIOS REQUERIDOS - ITERACION 5 (2026-04-30)
+
+### 21.1 CR-11 - Valores por defecto masivos solo para campos opcionales
+
+**Solicitud:** Permitir valores por defecto masivos unicamente en campos opcionales sin mapear. Los campos obligatorios deben seguir siendo mapeados de forma explicita a una columna real del archivo.
+
+**Analisis de impacto:**
+- Afecta `src/components/steps/Step1Panel.tsx`, `src/hooks/useWizardNavigation.ts` y `src/hooks/useRowValidation.ts`.
+- La UI del Paso 1 debe ofrecer valores por defecto solo para campos opcionales que permanezcan en `No mapear`.
+- La validacion del Paso 1 no debe considerar satisfecho un campo obligatorio si solo tiene un valor por defecto.
+- La normalizacion de filas no debe usar valores por defecto para campos obligatorios no mapeados.
+
+**Reglas de negocio anadidas:**
+
+> **RN-23:** Los 5 campos obligatorios del Paso 1 (`firstName`, `lastName`, `employeeId`, `hireDate`, `workEmail`) deben mapearse siempre a columnas reales del archivo.
+
+> **RN-24:** Los valores por defecto masivos solo pueden configurarse para campos opcionales que esten en estado `No mapear`.
+
+> **RN-25:** Un campo obligatorio sin mapear bloquea la navegacion al Paso 2, aun cuando exista un valor por defecto almacenado para ese campo.
+
+**Criterios de aceptacion:**
+- [ ] Los campos obligatorios no aparecen en la seccion de valores por defecto.
+- [ ] Los campos opcionales sin mapear si pueden recibir un valor por defecto masivo.
+- [ ] El contador de obligatorios completos solo considera mapeos reales para los campos requeridos.
+- [ ] La navegacion al Paso 2 sigue bloqueada si algun obligatorio no esta mapeado.
+
+---
+
+### 21.2 CR-12 - Reorganizacion visual de valores por defecto en Paso 1
+
+**Solicitud:** Evitar que los valores por defecto rompan la grilla principal de mapeo y moverlos a una seccion visual separada.
+
+**Analisis de impacto:**
+- Afecta `src/components/steps/Step1Panel.tsx`.
+- La grilla principal vuelve a mostrar solo los selects de mapeo.
+- Los defaults se presentan en una seccion secundaria con tarjetas uniformes para mantener el orden visual.
+
+**Reglas UX/UI anadidas:**
+
+> Los valores por defecto se muestran fuera de la grilla principal de mapeo, en una seccion dedicada para campos opcionales sin mapear, con una presentacion uniforme y estable.
+
+**Criterios de aceptacion:**
+- [ ] El grid principal de mapeo no cambia de altura por la aparicion de defaults.
+- [ ] Los valores por defecto se ven en una seccion separada y ordenada.
+- [ ] Cada campo opcional sin mapear muestra su estado, input/select y mensaje de ayuda dentro de una card consistente.
+
+---
+
+### 21.3 Resumen de archivos afectados - Iteracion 5
+
+| Archivo | CRs |
+|---------|-----|
+| `src/components/steps/Step1Panel.tsx` | CR-11, CR-12 |
+| `src/hooks/useWizardNavigation.ts` | CR-11 |
+| `src/hooks/useRowValidation.ts` | CR-11 |
+
+### 21.4 Estado de implementacion
+
+| CR | Estado |
+|----|--------|
+| CR-11 Valores por defecto solo para opcionales | Implementado |
+| CR-12 Reorganizacion visual de defaults en Paso 1 | Implementado |
+
+---
+
+## 22. CAMBIOS REQUERIDOS - ITERACION 6 (2026-04-30)
+
+### 22.1 CR-13 - Reemplazo de radio por switch para equipo principal
+
+**Solicitud:** En el Paso 3, reemplazar el radio de `Equipo principal` por un control tipo interruptor / switch con etiqueta `Es equipo principal`, alineado con el kit visual del proyecto.
+
+**Analisis de impacto:**
+- Afecta `src/components/steps/Step3Panel.tsx`.
+- No cambia la regla de negocio de unicidad: sigue existiendo exactamente un equipo principal.
+- La interaccion pasa a ser por card, con un switch visible dentro de cada equipo.
+
+**Reglas de negocio anadidas:**
+
+> **RN-26:** La marca de equipo principal en Paso 3 se expresa mediante un switch `Es equipo principal`, pero mantiene la restriccion de que solo un equipo puede quedar activo como principal a la vez.
+
+**Criterios de aceptacion:**
+- [ ] El radio desaparece del Paso 3.
+- [ ] Cada equipo muestra un switch `Es equipo principal`.
+- [ ] Al activar un equipo como principal, los demas se desmarcan.
+- [ ] Si no queda ninguno principal o quedan multiples por error de estado, la validacion sigue reportandolo.
+
+---
+
+### 22.2 CR-14 - Layout de dos columnas con arbol siempre visible en Paso 3
+
+**Solicitud:** Mantener la `Vista de arbol` visible mientras se recorre el listado de equipos, usando dos columnas diferenciadas y scroll independiente para el catalogo.
+
+**Analisis de impacto:**
+- Afecta `src/components/steps/Step3Panel.tsx`.
+- El layout del Paso 3 se organiza en dos columnas en desktop:
+  - izquierda: catalogo de equipos
+  - derecha: vista de arbol
+- El scroll debe ocurrir dentro de la columna izquierda, no sobre toda la pantalla del paso.
+- La columna derecha mantiene la vista de arbol sticky/visible durante el recorrido del listado.
+
+**Reglas UX/UI anadidas:**
+
+> En desktop, el Paso 3 se presenta en dos columnas independientes. El catalogo de equipos tiene scroll vertical propio y la vista de arbol permanece visible en una columna lateral fija/sticky.
+
+**Criterios de aceptacion:**
+- [ ] El Paso 3 se ve en dos columnas en desktop.
+- [ ] La columna izquierda tiene scroll independiente para el listado de equipos.
+- [ ] La vista de arbol queda visible mientras se navega el catalogo.
+- [ ] En mobile, el layout puede volver a una sola columna para preservar usabilidad.
+
+---
+
+### 22.3 Resumen de archivos afectados - Iteracion 6
+
+| Archivo | CRs |
+|---------|-----|
+| `src/components/steps/Step3Panel.tsx` | CR-13, CR-14 |
+
+### 22.4 Estado de implementacion
+
+| CR | Estado |
+|----|--------|
+| CR-13 Switch para equipo principal | Implementado |
+| CR-14 Dos columnas con arbol visible y scroll independiente | Implementado |

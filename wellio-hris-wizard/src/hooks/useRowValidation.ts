@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { FIELDS } from '../utils/fields';
 import { validateFieldValue } from '../utils/validators';
 import { normalize } from '../utils/normalize';
-import type { CellValue, FieldMapping, WorkModeValueMap, NormalizedRow, RowMeta, ValidationResult, ProcessedRow } from '../utils/types';
+import type { CellValue, FieldMapping, FieldDefaultValues, WorkModeValueMap, NormalizedRow, RowMeta, ValidationResult, ProcessedRow } from '../utils/types';
 
 function pad2(n: number): string {
   return String(n).padStart(2, '0');
@@ -96,14 +96,21 @@ function normalizeWorkMode(value: CellValue, workModeMap: WorkModeValueMap): { v
 
 export function useRowValidation() {
   const normalizeRow = useCallback(
-    (row: CellValue[], mapping: FieldMapping, headers: string[], workModeMap: WorkModeValueMap): { normalized: NormalizedRow; meta: RowMeta } => {
+    (
+      row: CellValue[],
+      mapping: FieldMapping,
+      headers: string[],
+      workModeMap: WorkModeValueMap,
+      defaultValues: FieldDefaultValues = {}
+    ): { normalized: NormalizedRow; meta: RowMeta } => {
       const normalized: NormalizedRow = {};
       const meta: RowMeta = {};
 
       FIELDS.forEach((field) => {
         const header = mapping[field.key];
         const colIdx = header && header !== '__none__' ? headers.indexOf(header) : -1;
-        const rawValue = colIdx >= 0 ? row[colIdx] : '';
+        const fallbackValue = field.required ? '' : (defaultValues[field.key] ?? '');
+        const rawValue = colIdx >= 0 ? row[colIdx] : fallbackValue;
 
         if (field.type === 'date') {
           const info = normalizeDate(rawValue);
@@ -140,9 +147,15 @@ export function useRowValidation() {
   }, []);
 
   const validateAll = useCallback(
-    (rows: CellValue[][], mapping: FieldMapping, headers: string[], workModeMap: WorkModeValueMap): ValidationResult[] => {
+    (
+      rows: CellValue[][],
+      mapping: FieldMapping,
+      headers: string[],
+      workModeMap: WorkModeValueMap,
+      defaultValues: FieldDefaultValues = {}
+    ): ValidationResult[] => {
       return rows.map((row, i) => {
-        const { normalized, meta } = normalizeRow(row, mapping, headers, workModeMap);
+        const { normalized, meta } = normalizeRow(row, mapping, headers, workModeMap, defaultValues);
         const errors = validateSingle(normalized);
         return { rowNumber: i + 2, raw: row, normalized, meta, errors, valid: errors.length === 0, omitted: false };
       });

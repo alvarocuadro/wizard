@@ -4,15 +4,18 @@ import { REQUIRED_FIELDS } from '../utils/fields';
 import { NONE_VALUE } from '../utils/constants';
 import type { StepNumber, WizardState } from '../utils/types';
 
+function isStep1FieldConfigured(state: WizardState, fieldKey: string): boolean {
+  const mappedValue = state.step1.mapping[fieldKey];
+  return Boolean(mappedValue && mappedValue !== NONE_VALUE);
+}
+
 function getBlockReasonForStep(step: StepNumber, state: WizardState): string | null {
   const { step1, step2, step3, step5 } = state;
 
   if (step === 1) {
-    const unmapped = REQUIRED_FIELDS.filter(
-      (field) => !step1.mapping[field.key] || step1.mapping[field.key] === NONE_VALUE
-    );
-    if (unmapped.length > 0) {
-      return `Mapea los campos obligatorios: ${unmapped.map((field) => field.label).join(', ')}.`;
+    const incomplete = REQUIRED_FIELDS.filter((field) => !isStep1FieldConfigured(state, field.key));
+    if (incomplete.length > 0) {
+      return `Mapea los campos obligatorios: ${incomplete.map((field) => field.label).join(', ')}.`;
     }
     const invalidCount = step1.validationResults.filter((result) => !result.valid && !result.omitted).length;
     if (invalidCount > 0) {
@@ -47,9 +50,7 @@ function getBlockReasonForStep(step: StepNumber, state: WizardState): string | n
     return null;
   }
 
-  if (step === 4) {
-    return null;
-  }
+  if (step === 4) return null;
 
   if (step === 5) {
     if (step5.assignments.some((assignment) => !assignment.valid)) {
@@ -63,12 +64,10 @@ function getBlockReasonForStep(step: StepNumber, state: WizardState): string | n
 
 function getHighestAvailableStep(state: WizardState): StepNumber {
   let highestAvailable: StepNumber = 1;
-
   if (getBlockReasonForStep(1, state) === null) highestAvailable = 2;
   if (highestAvailable >= 2 && getBlockReasonForStep(2, state) === null) highestAvailable = 3;
   if (highestAvailable >= 3 && getBlockReasonForStep(3, state) === null) highestAvailable = 4;
   if (highestAvailable >= 4 && getBlockReasonForStep(4, state) === null) highestAvailable = 5;
-
   return highestAvailable;
 }
 
@@ -102,13 +101,5 @@ export function useWizardNavigation() {
     [dispatch, highestAvailableStep]
   );
 
-  return {
-    currentStep,
-    canAdvance,
-    blockReason,
-    goNext,
-    goBack,
-    goTo,
-    highestAvailableStep,
-  };
+  return { currentStep, canAdvance, blockReason, goNext, goBack, goTo, highestAvailableStep };
 }
