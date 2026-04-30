@@ -714,16 +714,71 @@ El prototipo re-detecta el catálogo al cambiar la columna pero intenta preserva
 
 ---
 
-### 18.4 Resumen de archivos afectados
+### 18.4 CR-02 (revisado) — Alias de Modalidad: ubicación inline
 
-| Archivo | CRs que lo modifican |
-|---------|---------------------|
-| `src/components/steps/Step1Panel.tsx` | CR-01, CR-02, CR-03 |
+**Revisión post-implementación:** el acordeón separado de aliases quedaba colapsado y el usuario no lo descubría. La sección de alias se movió al **interior del acordeón "Mapeo de campos"**, debajo del grid, visible de forma inmediata al seleccionar la columna de Modalidad (con o sin auto-detección).
 
-No se requieren cambios en hooks, context, reducer, tipos ni tests de dominio existentes.
+**Regla de negocio añadida:**
+> Los selects de alias de Modalidad de trabajo se muestran inline dentro del accordion de mapeo, sin requerir interacción adicional del usuario para descubrirlos.
 
-### 18.5 Orden de implementación recomendado
+---
 
-1. **CR-01** (columnas exclusivas) — cambio puntual en el render del grid, sin nueva UI.
-2. **CR-03** (Vista previa) — nueva sección de UI, sin lógica de negocio nueva.
-3. **CR-02** (alias como selects) — reemplaza TextFields por Selects, requiere derivar `uniqueWmValues`.
+### 18.5 CR-04 — Feedback de corrección inline en filas con errores
+
+**Solicitud:** Al editar un campo dentro de una fila con error, el mensaje de error debe desaparecer y reemplazarse por un texto verde que indique que el campo fue corregido. El borde de la card también debe reflejar el estado.
+
+**Análisis de impacto:**
+- El reducer `S1_UPDATE_ROW` actualiza `result.normalized` pero no `result.errors` (que solo cambian al re-validar con el botón "Re-validar datos").
+- Solución: en cada render de `InvalidRowCard`, ejecutar `validateSingle(result.normalized)` — la misma función de validación del hook `useRowValidation` — para obtener los errores **actuales** y comparar contra los errores **originales** (`result.errors`).
+- Afecta `src/components/steps/Step1Panel.tsx` (componente `InvalidRowCard`).
+- No cambia ningún hook, reducer ni tipo.
+
+**Reglas de UI:**
+- Por cada error original `e` en `result.errors`:
+  - Si `e` ya **no está** en los errores actuales → `✓ Campo: corregido` en `success.main`.
+  - Si `e` **sigue presente** → `• error` en `error.main`.
+- Borde de la card: `warning.light` si hay errores pendientes, `success.light` si todos están resueltos.
+- Número de fila: `warning.dark` → `success.dark` cuando todos están resueltos.
+- El botón "Siguiente" **no se desbloquea** hasta hacer "Re-validar datos" (ver CR-05).
+
+---
+
+### 18.6 CR-05 — Bloqueo de navegación por filas con errores en Paso 1
+
+**Solicitud:** Si hay filas con error que no están omitidas, el botón "Siguiente" debe estar deshabilitado.
+
+**Análisis de impacto:**
+- `useWizardNavigation` ya bloquea Paso 1 si hay campos obligatorios sin mapear.
+- Se añade un segundo bloqueo: `step1.validationResults.filter(r => !r.valid && !r.omitted).length > 0`.
+- `r.valid` solo se actualiza al ejecutar `runValidation` (carga de archivo o botón "Re-validar datos"). El feedback verde de CR-04 es visual inmediato; el desbloqueo definitivo requiere re-validar.
+- Afecta exclusivamente `src/hooks/useWizardNavigation.ts`.
+
+**Mensaje de bloqueo:** `"Hay N fila/s con errores sin resolver. Corregílas, omitilas o re-validá antes de continuar."`
+
+**Reglas de negocio:**
+> **RN-11:** En el Paso 1, la navegación al Paso 2 queda bloqueada si existe al menos una `ValidationResult` con `valid = false` y `omitted = false`. El usuario debe corregir los errores y re-validar, o marcar las filas como omitidas.
+
+**Criterios de aceptación:**
+- [ ] Con filas inválidas no omitidas → botón Siguiente deshabilitado y mensaje de bloqueo visible.
+- [ ] Al hacer "Re-validar datos" y no quedar filas inválidas → botón se habilita.
+- [ ] Al omitir todas las filas inválidas → botón se habilita.
+- [ ] Si no se cargó archivo → el bloqueo anterior (campos obligatorios sin mapear) ya actúa.
+
+---
+
+### 18.7 Resumen de archivos afectados — Iteración 2 completa
+
+| Archivo | CRs |
+|---------|-----|
+| `src/components/steps/Step1Panel.tsx` | CR-01, CR-02, CR-03, CR-04 |
+| `src/hooks/useWizardNavigation.ts` | CR-05 |
+
+### 18.8 Estado de implementación
+
+| CR | Estado |
+|----|--------|
+| CR-01 Columnas exclusivas | ✅ Implementado |
+| CR-02 Alias workMode como selects inline | ✅ Implementado |
+| CR-03 Panel Vista previa | ✅ Implementado |
+| CR-04 Feedback inline verde/rojo | ✅ Implementado |
+| CR-05 Bloqueo navegación por filas con errores | ✅ Implementado |

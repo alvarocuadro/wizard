@@ -28,14 +28,14 @@ import { useRowValidation } from '../../hooks/useRowValidation';
 import { useWizardContext } from '../../context/WizardContext';
 import { FIELDS, REQUIRED_FIELDS } from '../../utils/fields';
 import { NONE_VALUE, WORK_MODE_VALUES } from '../../utils/constants';
-import type { CellValue, FieldMapping, WorkModeValueMap, ValidationResult } from '../../utils/types';
+import type { CellValue, FieldMapping, NormalizedRow, WorkModeValueMap, ValidationResult } from '../../utils/types';
 
 export function Step1Panel() {
   const { state, dispatch } = useWizardContext();
   const { step1 } = state;
   const { parse, loading, error } = useFileParser();
   const { detectMappings } = useColumnDetection();
-  const { validateAll, buildProcessedRows } = useRowValidation();
+  const { validateAll, validateSingle, buildProcessedRows } = useRowValidation();
 
   const runValidation = useCallback(
     (rows: CellValue[][], headers: string[], mapping: FieldMapping, wm: WorkModeValueMap) => {
@@ -66,18 +66,30 @@ export function Step1Panel() {
     const newMapping: FieldMapping = { ...step1.mapping, [fieldKey]: value };
     dispatch({ type: 'S1_SET_MAPPING', payload: newMapping });
     dispatch({ type: 'RESET_FROM_STEP', payload: 2 });
+    // Re-normalize from source so new column values are picked up
+    if (step1.source?.rows.length) {
+      runValidation(step1.source.rows, step1.source.headers, newMapping, step1.workModeValueMap);
+    }
   }
 
   function handleWorkModeChange(key: keyof WorkModeValueMap, value: string) {
-    dispatch({
-      type: 'S1_SET_WORKMODE_MAP',
-      payload: { ...step1.workModeValueMap, [key]: value },
-    });
+    const newMap: WorkModeValueMap = { ...step1.workModeValueMap, [key]: value };
+    dispatch({ type: 'S1_SET_WORKMODE_MAP', payload: newMap });
+    // Re-normalize from source so workMode alias changes are reflected
+    if (step1.source?.rows.length) {
+      runValidation(step1.source.rows, step1.source.headers, step1.mapping, newMap);
+    }
   }
 
+  // Validates from current normalized values (preserves inline edits by the user)
   function handleRevalidate() {
-    if (!step1.source) return;
-    runValidation(step1.source.rows, step1.source.headers, step1.mapping, step1.workModeValueMap);
+    if (step1.validationResults.length === 0) return;
+    const results = step1.validationResults.map((r) => {
+      const errors = validateSingle(r.normalized);
+      return { ...r, errors, valid: errors.length === 0 };
+    });
+    const processedRows = buildProcessedRows(results);
+    dispatch({ type: 'S1_SET_VALIDATION', payload: { results, processedRows } });
   }
 
   function handleChangeFile() {
@@ -115,6 +127,44 @@ export function Step1Panel() {
   ).length;
   const allRequiredMapped = mappedRequired === REQUIRED_FIELDS.length;
   const workModeIsMapped = mapping['workMode'] && mapping['workMode'] !== NONE_VALUE;
+
+  // CR-01: columns already used in another field
+  const usedColumns = new Set(Object.values(mapping).filter((v) => v && v !== NONE_VALUE));
+
+  // CR-02: unique values from the mapped workMode column
+  const wmColIndex =
+    workModeIsMapped ? source.headers.indexOf(mapping['workMode']) : -1;
+  const uniqueWmValues =
+    wmColIndex >= 0
+      ? [
+          ...new Set(
+            source.rows
+              .map((r) => String(r[wmColIndex] ?? '').trim())
+              .filter(Boolean)
+          ),
+        ].sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }))
+      : [];
+
+  // CR-03: fields to show in the preview panel
+  const previewFields = [
+    ...REQUIRED_FIELDS,
+    ...FIELDS.filter((f) => !f.required && mapping[f.key] && mapping[f.key] !== NONE_VALUE),
+  ].map((field) => {
+    const col = mapping[field.key];
+    const colIdx = col && col !== NONE_VALUE ? source.headers.indexOf(col) : -1;
+    const values =
+      colIdx >= 0
+        ? [
+            ...new Set(
+              source.rows
+                .slice(0, 8)
+                .map((r) => String(r[colIdx] ?? '').trim())
+                .filter(Boolean)
+            ),
+          ]
+        : [];
+    return { field, columnName: colIdx >= 0 ? col : null, values };
+  });
 
   const validCount = validationResults.filter((r) => r.valid && !r.omitted).length;
   const invalidResults = validationResults.filter((r) => !r.valid);
@@ -176,7 +226,15 @@ export function Step1Panel() {
                       sx={{ bgcolor: isMapped ? 'success.light' : undefined }}
                     >
                       {headerOptions.map((opt) => (
-                        <MenuItem key={opt.value} value={opt.value}>
+                        <MenuItem
+                          key={opt.value}
+                          value={opt.value}
+                          disabled={
+                            opt.value !== NONE_VALUE &&
+                            usedColumns.has(opt.value) &&
+                            opt.value !== current
+                          }
+                        >
                           {opt.label}
                         </MenuItem>
                       ))}
@@ -186,38 +244,89 @@ export function Step1Panel() {
               );
             })}
           </Grid>
+
+          {/* CR-02: alias de workMode — aparece inline cuando se mapea la columna */}
+          {workModeIsMapped && (
+            <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                Valores de modalidad en el archivo
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 2 }}>
+                {uniqueWmValues.length > 0
+                  ? 'Indicá a qué modalidad canónica corresponde cada valor encontrado:'
+                  : 'No se encontraron valores en la columna seleccionada.'}
+              </Typography>
+              {uniqueWmValues.length > 0 && (
+                <Grid container spacing={2}>
+                  {WORK_MODE_VALUES.map((mode) => (
+                    <Grid key={mode} size={{ xs: 12, sm: 4 }}>
+                      <FormControl size="small" fullWidth>
+                        <InputLabel>{mode}</InputLabel>
+                        <Select
+                          value={workModeValueMap[mode as keyof WorkModeValueMap] ?? ''}
+                          label={mode}
+                          onChange={(e) =>
+                            handleWorkModeChange(mode as keyof WorkModeValueMap, e.target.value)
+                          }
+                        >
+                          <MenuItem value="">— Sin mapear —</MenuItem>
+                          {uniqueWmValues.map((v) => (
+                            <MenuItem key={v} value={v}>{v}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  ))}
+                </Grid>
+              )}
+            </Box>
+          )}
         </AccordionDetails>
       </Accordion>
 
-      {/* WorkMode aliases */}
-      {workModeIsMapped && (
-        <Accordion sx={{ mb: 2, borderRadius: '12px !important', '&:before': { display: 'none' } }}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography sx={{ fontWeight: 700 }}>Alias de modalidad de trabajo</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-              Si tu archivo usa valores distintos, indicá cómo se llama cada modalidad:
-            </Typography>
-            <Grid container spacing={2}>
-              {WORK_MODE_VALUES.map((mode) => (
-                <Grid key={mode} size={{ xs: 12, sm: 4 }}>
-                  <TextField
-                    size="small"
-                    fullWidth
-                    label={`Alias para "${mode}"`}
-                    placeholder={mode}
-                    value={workModeValueMap[mode as keyof WorkModeValueMap] ?? ''}
-                    onChange={(e) =>
-                      handleWorkModeChange(mode as keyof WorkModeValueMap, e.target.value)
-                    }
-                  />
-                </Grid>
-              ))}
-            </Grid>
-          </AccordionDetails>
-        </Accordion>
-      )}
+      {/* CR-03: Vista previa */}
+      <Card variant="outlined" sx={{ mb: 2, borderRadius: 3 }}>
+        <CardContent>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
+            Vista previa
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+            Primeras filas del archivo para validar rápidamente si el mapeo propuesto es correcto.
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {previewFields.map(({ field, columnName, values }) => (
+              <Box key={field.key}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'baseline',
+                    mb: 0.5,
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                    {field.label}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    {columnName ?? 'Sin asignar'}
+                  </Typography>
+                </Box>
+                {values.length > 0 ? (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    {values.map((v, i) => (
+                      <Chip key={i} label={v} size="small" variant="outlined" />
+                    ))}
+                  </Box>
+                ) : (
+                  <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                    Todavía no hay una columna elegida.
+                  </Typography>
+                )}
+              </Box>
+            ))}
+          </Box>
+        </CardContent>
+      </Card>
 
       {/* Re-validate button */}
       <Box sx={{ mb: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
@@ -261,6 +370,7 @@ export function Step1Panel() {
                       key={result.rowNumber}
                       result={result}
                       index={idx}
+                      validateSingle={validateSingle}
                       onUpdate={(i, normalized) =>
                         dispatch({ type: 'S1_UPDATE_ROW', payload: { index: i, normalized } })
                       }
@@ -285,13 +395,18 @@ export function Step1Panel() {
 interface InvalidRowCardProps {
   result: ValidationResult;
   index: number;
+  validateSingle: (normalized: NormalizedRow) => string[];
   onUpdate: (index: number, normalized: Record<string, string>) => void;
   onToggleOmit: (index: number) => void;
 }
 
-function InvalidRowCard({ result, index, onUpdate, onToggleOmit }: InvalidRowCardProps) {
+function InvalidRowCard({ result, index, validateSingle, onUpdate, onToggleOmit }: InvalidRowCardProps) {
   const errorFieldLabels = new Set(result.errors.map((e) => e.split(':')[0].trim()));
   const editableFields = FIELDS.filter((f) => errorFieldLabels.has(f.label));
+
+  // Current errors after inline edits (result.normalized is updated by S1_UPDATE_ROW)
+  const currentErrors = new Set(validateSingle(result.normalized));
+  const allResolved = result.errors.length > 0 && result.errors.every((e) => !currentErrors.has(e));
 
   return (
     <Card
@@ -299,7 +414,7 @@ function InvalidRowCard({ result, index, onUpdate, onToggleOmit }: InvalidRowCar
       sx={{
         mb: 2,
         borderRadius: 2,
-        borderColor: result.omitted ? 'divider' : 'warning.light',
+        borderColor: result.omitted ? 'divider' : allResolved ? 'success.light' : 'warning.light',
         opacity: result.omitted ? 0.6 : 1,
       }}
     >
@@ -307,7 +422,10 @@ function InvalidRowCard({ result, index, onUpdate, onToggleOmit }: InvalidRowCar
         <Box
           sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}
         >
-          <Typography variant="caption" sx={{ fontWeight: 700, color: 'warning.dark' }}>
+          <Typography
+            variant="caption"
+            sx={{ fontWeight: 700, color: allResolved ? 'success.dark' : 'warning.dark' }}
+          >
             Fila {result.rowNumber}
           </Typography>
           <Button
@@ -321,11 +439,17 @@ function InvalidRowCard({ result, index, onUpdate, onToggleOmit }: InvalidRowCar
           </Button>
         </Box>
 
-        {result.errors.map((e) => (
-          <Typography key={e} variant="caption" sx={{ color: 'error.main', display: 'block' }}>
-            • {e}
-          </Typography>
-        ))}
+        {result.errors.map((e) =>
+          currentErrors.has(e) ? (
+            <Typography key={e} variant="caption" sx={{ color: 'error.main', display: 'block' }}>
+              • {e}
+            </Typography>
+          ) : (
+            <Typography key={e} variant="caption" sx={{ color: 'success.main', display: 'block' }}>
+              ✓ {e.split(':')[0].trim()}: corregido
+            </Typography>
+          )
+        )}
 
         {editableFields.length > 0 && (
           <>

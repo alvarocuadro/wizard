@@ -14,6 +14,10 @@ function getBlockReason(state: ReturnType<typeof useWizardContext>['state']): st
     if (unmapped.length > 0) {
       return `Mapeá los campos obligatorios: ${unmapped.map((f) => f.label).join(', ')}.`;
     }
+    const invalidCount = step1.validationResults.filter((r) => !r.valid && !r.omitted).length;
+    if (invalidCount > 0) {
+      return `Hay ${invalidCount} fila${invalidCount > 1 ? 's' : ''} con errores sin resolver. Corregílas, omitilas o re-validá antes de continuar.`;
+    }
     return null;
   }
 
