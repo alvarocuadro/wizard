@@ -591,7 +591,7 @@ El prototipo re-detecta el catÃ¡logo al cambiar la columna pero intenta preser
 | MUI v5 | Usar `@mui/material` + `@mui/x-date-pickers` para DatePicker |
 | TypeScript strict | `"strict": true`, sin `any` explÃ­cito, sin `@ts-ignore` |
 | SheetJS | `xlsx` (ya en prototipo) â€” parsear con `{ type: "array", cellDates: true, raw: true }` |
-| Session-only | Sin `localStorage`, sin `sessionStorage`, solo React state/context |
+| Session-only | Sin `localStorage`, sin `sessionStorage`, solo React state/context — **excepcion: borrador de sesion guardado en `localStorage` con clave `wellio-hris-wizard-draft-v1` (ver CR-16)** |
 | Sin backend | Todo client-side |
 | Material React Table | Para DataTable genÃ©rico (si se usa) |
 | Sin i18n lib | Los textos estÃ¡n en castellano hardcodeados (PoC) |
@@ -659,9 +659,9 @@ El prototipo re-detecta el catÃ¡logo al cambiar la columna pero intenta preser
 > **RN-09 (revisado):** Cada columna del Excel puede mapearse a un solo campo FIELD. En el grid de mapeo, las opciones de columna ya usadas aparecen deshabilitadas en los selectores de los demÃ¡s campos. El usuario debe primero limpiar el mapeo que ocupa la columna para poder asignarla a otro campo.
 
 **Criterios de aceptaciÃ³n:**
-- [ ] Si "Apellido" usa la columna "Apellido", esa opciÃ³n aparece `disabled` (y visualmente grisada) en todos los otros selects.
-- [ ] La opciÃ³n NO estÃ¡ deshabilitada en el select del campo que ya la tiene asignada (puede reasignarse a NONE desde su propio selector).
-- [ ] Al cambiar un select a NONE_VALUE, la columna vuelve a estar disponible en los demÃ¡s.
+- [x] Si "Apellido" usa la columna "Apellido", esa opciÃ³n aparece `disabled` (y visualmente grisada) en todos los otros selects.
+- [x] La opciÃ³n NO estÃ¡ deshabilitada en el select del campo que ya la tiene asignada (puede reasignarse a NONE desde su propio selector).
+- [x] Al cambiar un select a NONE_VALUE, la columna vuelve a estar disponible en los demÃ¡s.
 
 ---
 
@@ -681,11 +681,11 @@ El prototipo re-detecta el catÃ¡logo al cambiar la columna pero intenta preser
 4. Permitir la opciÃ³n vacÃ­a para dejar un valor canÃ³nico sin alias (filas con ese valor resultarÃ¡n invÃ¡lidas si no coinciden con ningÃºn alias).
 
 **Criterios de aceptaciÃ³n:**
-- [ ] Al mapear la columna Modalidad, el panel de alias muestra selects con los valores Ãºnicos del archivo.
-- [ ] Si el archivo tiene "Home Office", "Mixto", "Oficina" â†’ esos valores aparecen como opciones en cada select.
-- [ ] El mismo valor puede asignarse a dos canÃ³nicos (edge case vÃ¡lido, no bloquear).
-- [ ] Al cambiar la columna mapeada, los selects se recalculan con los nuevos valores Ãºnicos.
-- [ ] El valor guardado en `WorkModeValueMap` es el string tal como aparece en el archivo (sin normalizar).
+- [x] Al mapear la columna Modalidad, el panel de alias muestra selects con los valores Ãºnicos del archivo.
+- [x] Si el archivo tiene "Home Office", "Mixto", "Oficina" â†’ esos valores aparecen como opciones en cada select.
+- [x] El mismo valor puede asignarse a dos canÃ³nicos (edge case vÃ¡lido, no bloquear).
+- [x] Al cambiar la columna mapeada, los selects se recalculan con los nuevos valores Ãºnicos.
+- [x] El valor guardado en `WorkModeValueMap` es el string tal como aparece en el archivo (sin normalizar).
 
 ---
 
@@ -725,12 +725,12 @@ El prototipo re-detecta el catÃ¡logo al cambiar la columna pero intenta preser
 - ActualizaciÃ³n en tiempo real al cambiar cualquier select del grid.
 
 **Criterios de aceptaciÃ³n:**
-- [ ] Panel visible en cuanto hay archivo cargado.
-- [ ] Los 5 campos obligatorios siempre aparecen en el panel.
-- [ ] Los campos opcionales mapeados tambiÃ©n aparecen.
-- [ ] Los chips muestran valores reales (no headers).
-- [ ] Campo no mapeado â†’ texto gris, sin chips.
-- [ ] ActualizaciÃ³n inmediata al cambiar un mapeo.
+- [x] Panel visible en cuanto hay archivo cargado.
+- [x] Los 5 campos obligatorios siempre aparecen en el panel.
+- [x] Los campos opcionales mapeados tambiÃ©n aparecen.
+- [x] Los chips muestran valores reales (no headers).
+- [x] Campo no mapeado â†’ texto gris, sin chips.
+- [x] ActualizaciÃ³n inmediata al cambiar un mapeo.
 
 ---
 
@@ -779,10 +779,10 @@ El prototipo re-detecta el catÃ¡logo al cambiar la columna pero intenta preser
 > **RN-11:** En el Paso 1, la navegaciÃ³n al Paso 2 queda bloqueada si existe al menos una `ValidationResult` con `valid = false` y `omitted = false`. El usuario debe corregir los errores y re-validar, o marcar las filas como omitidas.
 
 **Criterios de aceptaciÃ³n:**
-- [ ] Con filas invÃ¡lidas no omitidas â†’ botÃ³n Siguiente deshabilitado y mensaje de bloqueo visible.
-- [ ] Al hacer "Re-validar datos" y no quedar filas invÃ¡lidas â†’ botÃ³n se habilita.
-- [ ] Al omitir todas las filas invÃ¡lidas â†’ botÃ³n se habilita.
-- [ ] Si no se cargÃ³ archivo â†’ el bloqueo anterior (campos obligatorios sin mapear) ya actÃºa.
+- [x] Con filas invÃ¡lidas no omitidas â†’ botÃ³n Siguiente deshabilitado y mensaje de bloqueo visible.
+- [x] Al hacer "Re-validar datos" y no quedar filas invÃ¡lidas â†’ botÃ³n se habilita.
+- [x] Al omitir todas las filas invÃ¡lidas â†’ botÃ³n se habilita.
+- [x] Si no se cargÃ³ archivo â†’ el bloqueo anterior (campos obligatorios sin mapear) ya actÃºa.
 
 ---
 
@@ -821,9 +821,9 @@ El prototipo re-detecta el catÃ¡logo al cambiar la columna pero intenta preser
 > **RN-12:** En el Paso 5, si el `Rol lider` seleccionado para un equipo tiene exactamente un miembro candidato en las asignaciones validas del Paso 4, el sistema debe autocompletar esa persona como lider.
 
 **Criterios de aceptacion:**
-- [ ] Si el rol seleccionado tiene 1 sola persona asignada en ese equipo -> se autocompleta la persona.
-- [ ] El estado queda marcado como valido sin interaccion adicional del usuario.
-- [ ] Si luego cambia el rol y el nuevo rol tiene varios candidatos -> ya no se autocompleta y se requiere definicion explicita.
+- [x] Si el rol seleccionado tiene 1 sola persona asignada en ese equipo -> se autocompleta la persona.
+- [x] El estado queda marcado como valido sin interaccion adicional del usuario.
+- [x] Si luego cambia el rol y el nuevo rol tiene varios candidatos -> ya no se autocompleta y se requiere definicion explicita.
 
 ---
 
@@ -851,10 +851,10 @@ El prototipo re-detecta el catÃ¡logo al cambiar la columna pero intenta preser
 > **RN-15:** En modo `Todos los miembros del rol`, el sistema debe considerar como lideres a todas las personas asignadas a ese rol dentro del equipo seleccionado.
 
 **Criterios de aceptacion:**
-- [ ] Con varios candidatos, aparece un selector de alcance de liderazgo.
-- [ ] En modo `Miembros especificos`, se permite seleccion multiple.
-- [ ] En modo `Todos los miembros del rol`, no hace falta elegir personas manualmente.
-- [ ] Al cambiar el rol, solo se conservan las personas que siguen siendo validas para el nuevo filtro.
+- [x] Con varios candidatos, aparece un selector de alcance de liderazgo.
+- [x] En modo `Miembros especificos`, se permite seleccion multiple.
+- [x] En modo `Todos los miembros del rol`, no hace falta elegir personas manualmente.
+- [x] Al cambiar el rol, solo se conservan las personas que siguen siendo validas para el nuevo filtro.
 
 ---
 
@@ -874,9 +874,9 @@ El prototipo re-detecta el catÃ¡logo al cambiar la columna pero intenta preser
 > **RN-17:** Si el usuario selecciona `Todos los miembros del rol`, el JSON final puede generar un unico `RoleGroup` con `isTeamLead = true` para ese rol dentro del equipo.
 
 **Criterios de aceptacion:**
-- [ ] Si un rol tiene 3 miembros y 1 fue elegido como lider -> el JSON separa 1 miembro en un grupo lider y 2 en un grupo no lider.
-- [ ] Si un rol tiene 3 miembros y se elige `Todos` -> el JSON genera un unico grupo con los 3 miembros marcados como lideres.
-- [ ] Si el rol lider no existia previamente en el agrupamiento esperado -> el builder crea igualmente el grupo correspondiente.
+- [x] Si un rol tiene 3 miembros y 1 fue elegido como lider -> el JSON separa 1 miembro en un grupo lider y 2 en un grupo no lider.
+- [x] Si un rol tiene 3 miembros y se elige `Todos` -> el JSON genera un unico grupo con los 3 miembros marcados como lideres.
+- [x] Si el rol lider no existia previamente en el agrupamiento esperado -> el builder crea igualmente el grupo correspondiente.
 
 ---
 
@@ -919,9 +919,9 @@ El prototipo re-detecta el catÃ¡logo al cambiar la columna pero intenta preser
 > **RN-20:** El usuario puede navegar hacia adelante solo hasta el ultimo paso habilitado, entendido como el ultimo paso cuyo anterior ya fue completado segun sus reglas de validacion.
 
 **Criterios de aceptacion:**
-- [ ] Si el usuario completa un paso y avanza, puede volver atras desde el breadcrumb sin perder datos.
-- [ ] Si vuelve a un paso anterior y luego reingresa a uno ya habilitado, los datos previamente cargados siguen presentes.
-- [ ] No se puede saltar a un paso futuro que aun no haya quedado habilitado por la finalizacion del anterior.
+- [x] Si el usuario completa un paso y avanza, puede volver atras desde el breadcrumb sin perder datos.
+- [x] Si vuelve a un paso anterior y luego reingresa a uno ya habilitado, los datos previamente cargados siguen presentes.
+- [x] No se puede saltar a un paso futuro que aun no haya quedado habilitado por la finalizacion del anterior.
 
 ---
 
@@ -941,9 +941,9 @@ El prototipo re-detecta el catÃ¡logo al cambiar la columna pero intenta preser
 > **RN-22:** `highestAvailableStep` se calcula en funcion del cumplimiento secuencial de las reglas de bloqueo de los pasos 1, 2 y 3; el paso 4 no bloquea el acceso al 5.
 
 **Criterios de aceptacion:**
-- [ ] Los pasos previos y el paso actual pueden seleccionarse desde el breadcrumb.
-- [ ] Los pasos futuros bloqueados aparecen visualmente deshabilitados.
-- [ ] Si un paso deja de cumplir sus validaciones, no debe habilitar pasos adicionales nuevos hasta corregirse.
+- [x] Los pasos previos y el paso actual pueden seleccionarse desde el breadcrumb.
+- [x] Los pasos futuros bloqueados aparecen visualmente deshabilitados.
+- [x] Si un paso deja de cumplir sus validaciones, no debe habilitar pasos adicionales nuevos hasta corregirse.
 
 ---
 
@@ -985,10 +985,10 @@ El prototipo re-detecta el catÃ¡logo al cambiar la columna pero intenta preser
 > **RN-25:** Un campo obligatorio sin mapear bloquea la navegacion al Paso 2, aun cuando exista un valor por defecto almacenado para ese campo.
 
 **Criterios de aceptacion:**
-- [ ] Los campos obligatorios no aparecen en la seccion de valores por defecto.
-- [ ] Los campos opcionales sin mapear si pueden recibir un valor por defecto masivo.
-- [ ] El contador de obligatorios completos solo considera mapeos reales para los campos requeridos.
-- [ ] La navegacion al Paso 2 sigue bloqueada si algun obligatorio no esta mapeado.
+- [x] Los campos obligatorios no aparecen en la seccion de valores por defecto.
+- [x] Los campos opcionales sin mapear si pueden recibir un valor por defecto masivo.
+- [x] El contador de obligatorios completos solo considera mapeos reales para los campos requeridos.
+- [x] La navegacion al Paso 2 sigue bloqueada si algun obligatorio no esta mapeado.
 
 ---
 
@@ -1006,9 +1006,9 @@ El prototipo re-detecta el catÃ¡logo al cambiar la columna pero intenta preser
 > Los valores por defecto se muestran fuera de la grilla principal de mapeo, en una seccion dedicada para campos opcionales sin mapear, con una presentacion uniforme y estable.
 
 **Criterios de aceptacion:**
-- [ ] El grid principal de mapeo no cambia de altura por la aparicion de defaults.
-- [ ] Los valores por defecto se ven en una seccion separada y ordenada.
-- [ ] Cada campo opcional sin mapear muestra su estado, input/select y mensaje de ayuda dentro de una card consistente.
+- [x] El grid principal de mapeo no cambia de altura por la aparicion de defaults.
+- [x] Los valores por defecto se ven en una seccion separada y ordenada.
+- [x] Cada campo opcional sin mapear muestra su estado, input/select y mensaje de ayuda dentro de una card consistente.
 
 ---
 
@@ -1045,10 +1045,10 @@ El prototipo re-detecta el catÃ¡logo al cambiar la columna pero intenta preser
 > **RN-26:** La marca de equipo principal en Paso 3 se expresa mediante un switch `Es equipo principal`, pero mantiene la restriccion de que solo un equipo puede quedar activo como principal a la vez.
 
 **Criterios de aceptacion:**
-- [ ] El radio desaparece del Paso 3.
-- [ ] Cada equipo muestra un switch `Es equipo principal`.
-- [ ] Al activar un equipo como principal, los demas se desmarcan.
-- [ ] Si no queda ninguno principal o quedan multiples por error de estado, la validacion sigue reportandolo.
+- [x] El radio desaparece del Paso 3.
+- [x] Cada equipo muestra un switch `Es equipo principal`.
+- [x] Al activar un equipo como principal, los demas se desmarcan.
+- [x] Si no queda ninguno principal o quedan multiples por error de estado, la validacion sigue reportandolo.
 
 ---
 
@@ -1069,10 +1069,10 @@ El prototipo re-detecta el catÃ¡logo al cambiar la columna pero intenta preser
 > En desktop, el Paso 3 se presenta en dos columnas independientes. El catalogo de equipos tiene scroll vertical propio y la vista de arbol permanece visible en una columna lateral fija/sticky.
 
 **Criterios de aceptacion:**
-- [ ] El Paso 3 se ve en dos columnas en desktop.
-- [ ] La columna izquierda tiene scroll independiente para el listado de equipos.
-- [ ] La vista de arbol queda visible mientras se navega el catalogo.
-- [ ] En mobile, el layout puede volver a una sola columna para preservar usabilidad.
+- [x] El Paso 3 se ve en dos columnas en desktop.
+- [x] La columna izquierda tiene scroll independiente para el listado de equipos.
+- [x] La vista de arbol queda visible mientras se navega el catalogo.
+- [x] En mobile, el layout puede volver a una sola columna para preservar usabilidad.
 
 ---
 
@@ -1086,5 +1086,134 @@ El prototipo re-detecta el catÃ¡logo al cambiar la columna pero intenta preser
 
 | CR | Estado |
 |----|--------|
-| CR-13 Switch para equipo principal | Implementado |
-| CR-14 Dos columnas con arbol visible y scroll independiente | Implementado |
+| CR-13 Switch para equipo principal | ✅ Implementado |
+| CR-14 Dos columnas con arbol visible y scroll independiente | ✅ Implementado |
+
+---
+
+## 23. CAMBIOS REQUERIDOS — ITERACIÓN 7 (2026-04-30)
+
+### 23.1 CR-15 — Corrección de "Re-validar datos": preservar correcciones inline
+
+**Solicitud:** Al hacer clic en "Re-validar datos", el sistema debe tomar los valores corregidos inline por el usuario y no repisar los cambios con los datos originales del archivo.
+
+**Causa raíz:**
+`handleRevalidate` llamaba a `runValidation(source.rows, ...)` que re-lee las filas crudas del archivo y re-normaliza desde cero, descartando todos los cambios que el usuario había hecho mediante el editor inline de `InvalidRowCard`. El reducer `S1_UPDATE_ROW` actualiza `result.normalized` en estado, pero `runValidation` no lee ese estado — lee desde `source.rows` original.
+
+**Análisis de impacto:**
+
+| Operación | Fuente de datos | Comportamiento esperado |
+|-----------|----------------|------------------------|
+| Carga de archivo | `source.rows` (raw) | Re-normaliza desde el archivo — ✅ correcto |
+| Cambio de columna mapeada | `source.rows` (raw) | Re-normaliza con nuevo mapeo — ✅ correcto |
+| Cambio de alias workMode | `source.rows` (raw) | Re-normaliza con nuevos aliases — ✅ correcto |
+| Edición inline por usuario | `result.normalized` (editado) | Actualiza solo el campo modificado — ✅ correcto |
+| **"Re-validar datos"** | ~~`source.rows` (raw)~~ → `result.normalized` (editado) | **Validar los valores actuales, preservando edits** |
+
+**Solución implementada:**
+
+`handleRevalidate` ahora itera sobre `step1.validationResults` y llama a `validateSingle(r.normalized)` por cada fila, usando los valores ya normalizados (incluye ediciones del usuario):
+
+```typescript
+function handleRevalidate() {
+  if (step1.validationResults.length === 0) return;
+  const results = step1.validationResults.map((r) => {
+    const errors = validateSingle(r.normalized);
+    return { ...r, errors, valid: errors.length === 0 };
+  });
+  const processedRows = buildProcessedRows(results);
+  dispatch({ type: 'S1_SET_VALIDATION', payload: { results, processedRows } });
+}
+```
+
+`handleMappingChange` y `handleWorkModeChange` siguen llamando a `runValidation` desde source (correcto: un cambio de configuración invalida las ediciones previas y requiere re-normalización).
+
+**Regla de negocio añadida:**
+
+> **RN-27:** El botón "Re-validar datos" del Paso 1 valida los valores actualmente almacenados en `result.normalized` para cada fila (que incluyen correcciones inline del usuario), sin re-leer el archivo fuente. Un cambio de mapeo de columna o de alias de Modalidad sí re-lee el archivo y descarta ediciones anteriores.
+
+**Criterios de aceptación:**
+- [x] Usuario edita campo inline → hace clic "Re-validar datos" → el campo corregido queda como válido.
+- [x] La fila deja de aparecer en el listado de errores si todos sus campos están corregidos.
+- [x] El botón "Siguiente" se habilita si no quedan filas inválidas no omitidas tras re-validar.
+- [x] Cambiar el mapeo de una columna sigue re-leyendo desde el archivo (ediciones se pierden — comportamiento esperado).
+
+**Archivos modificados:**
+
+| Archivo | Cambio |
+|---------|--------|
+| `src/components/steps/Step1Panel.tsx` | `handleRevalidate` valida desde `result.normalized`; `handleMappingChange` y `handleWorkModeChange` auto-revalidan desde source |
+
+### 23.2 Estado de implementación — Iteración 7
+
+| CR | Estado |
+|----|--------|
+| CR-15 Re-validar datos preserva correcciones inline | ✅ Implementado |
+
+---
+
+## 24. CAMBIOS REQUERIDOS — ITERACIÓN 8 (2026-04-30)
+
+### 24.1 CR-16 — Borrador persistente en WizardHeader (localStorage)
+
+**Solicitud:** Permitir al usuario guardar el estado completo del wizard en el navegador para poder continuar en otra sesion sin perder el trabajo.
+
+**Analisis de impacto:**
+- Afecta `src/components/wizard/WizardHeader.tsx` y `src/context/wizardReducer.ts`.
+- Requiere una nueva accion `SET_WIZARD_STATE` en el reducer que reemplaza el estado completo del wizard.
+- Rompe la restriccion original "Sin localStorage" de la Seccion 15 — decision deliberada para mejorar la experiencia del usuario en el PoC.
+- La clave de almacenamiento es `wellio-hris-wizard-draft-v1`.
+
+**Estructura de datos del borrador:**
+
+```typescript
+interface StoredDraft {
+  savedAt: string; // ISO 8601 timestamp
+  state: WizardState; // estado completo del wizard
+}
+```
+
+**Comportamiento implementado:**
+- Boton "Guardar borrador y seguir mas tarde": serializa `state` completo con timestamp en `localStorage`.
+- Boton "Cargar borrador": deserializa y despacha `SET_WIZARD_STATE` para restaurar el wizard al estado guardado.
+- Boton "Reiniciar": llama a `window.location.reload()` para volver al estado inicial.
+- Boton "Cargar borrador" solo aparece si existe un borrador en `localStorage`.
+- Alerta informativa muestra el estado de la operacion (borrador guardado, cargado o no disponible) y la fecha/hora del ultimo guardado en formato `es-AR`.
+
+**Accion de reducer agregada:**
+
+```typescript
+case 'SET_WIZARD_STATE':
+  return action.payload; // reemplaza el estado completo
+```
+
+**Restriccion actualizada:**
+
+> **RT-01 (revisado):** El estado del wizard es session-only via Context API. Como excepcion, el `WizardHeader` permite guardar un borrador completo en `localStorage` bajo la clave `wellio-hris-wizard-draft-v1` para dar continuidad entre sesiones. Cualquier otra persistencia sigue prohibida.
+
+**Regla de negocio anadida:**
+
+> **RN-28:** El usuario puede guardar el estado del wizard como borrador en cualquier momento del flujo. Al cargar el borrador, el wizard retoma exactamente el paso y los datos que tenia al momento de guardar, sin revalidacion adicional.
+
+**Criterios de aceptacion:**
+- [x] El boton "Guardar borrador" serializa el estado completo y lo persiste en `localStorage`.
+- [x] El boton "Cargar borrador" solo aparece si existe un borrador guardado.
+- [x] Al cargar el borrador, el wizard vuelve al paso y los datos que tenia al guardar.
+- [x] La alerta indica la fecha/hora del ultimo borrador guardado (formato `es-AR`).
+- [x] El boton "Reiniciar" resetea la sesion via `window.location.reload()`.
+- [x] El borrador no afecta el flujo normal del wizard si el usuario no lo usa.
+
+---
+
+### 24.2 Resumen de archivos afectados — Iteracion 8
+
+| Archivo | CRs |
+|---------|-----|
+| `src/components/wizard/WizardHeader.tsx` | CR-16 |
+| `src/context/wizardReducer.ts` | CR-16 (`SET_WIZARD_STATE`) |
+
+### 24.3 Estado de implementacion
+
+| CR | Estado |
+|----|--------|
+| CR-16 Borrador persistente con localStorage | ✅ Implementado |
