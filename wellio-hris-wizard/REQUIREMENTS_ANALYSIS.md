@@ -619,3 +619,111 @@ El prototipo re-detecta el catálogo al cambiar la columna pero intenta preserva
 ---
 
 *Documento producido por SKILL #1 ANALYSIS — en espera de aprobación para continuar con SKILL #2 ARCHITECTURE.*
+
+---
+
+## 18. CAMBIOS REQUERIDOS — ITERACIÓN 2 (2026-04-30)
+
+### 18.1 CR-01 — Columnas exclusivas en el mapeo de campos
+
+**Solicitud:** Los campos del Excel ya asignados a un campo FIELD deben quedar deshabilitados en todos los demás selects. Para reasignarlos hay que liberar el mapeo que los ocupa.
+
+**Análisis de impacto:**
+- Ya estaba previsto en RN-09 y en Reglas UX/UI (sección 3.5, ítem "Columna mapeada no puede asignarse a dos campos distintos") pero no fue implementado en `Step1Panel.tsx`.
+- Afecta **exclusivamente** `src/components/steps/Step1Panel.tsx`.
+- Implementación: calcular `usedColumns = new Set(Object.values(mapping).filter(v => v !== NONE_VALUE))`. En cada `<Select>` del grid, los `<MenuItem>` cuyo `value` esté en `usedColumns` Y no sea el valor actual del campo → `disabled`.
+- Ningún hook ni tipo cambia.
+
+**Reglas de negocio actualizadas:**
+
+> **RN-09 (revisado):** Cada columna del Excel puede mapearse a un solo campo FIELD. En el grid de mapeo, las opciones de columna ya usadas aparecen deshabilitadas en los selectores de los demás campos. El usuario debe primero limpiar el mapeo que ocupa la columna para poder asignarla a otro campo.
+
+**Criterios de aceptación:**
+- [ ] Si "Apellido" usa la columna "Apellido", esa opción aparece `disabled` (y visualmente grisada) en todos los otros selects.
+- [ ] La opción NO está deshabilitada en el select del campo que ya la tiene asignada (puede reasignarse a NONE desde su propio selector).
+- [ ] Al cambiar un select a NONE_VALUE, la columna vuelve a estar disponible en los demás.
+
+---
+
+### 18.2 CR-02 — Alias de Modalidad de trabajo: selects en lugar de text inputs
+
+**Solicitud:** Cuando "Modalidad de trabajo" está mapeada, el mapeo de alias (Presencial / Híbrido / Remoto) debe presentarse como selects cuyos ítems son los **valores únicos reales** de esa columna en el archivo, no campos de texto libre.
+
+**Análisis de impacto:**
+- Ya estaba previsto en P1-17, RN-08 y CU-05. La implementación actual usa `<TextField>` (texto libre). El nuevo requerimiento cambia la UX: el usuario elige, dentro de los valores que realmente aparecen en su archivo, cuál corresponde a cada valor canónico.
+- Afecta **exclusivamente** `src/components/steps/Step1Panel.tsx`.
+- Ningún hook ni tipo cambia: `WorkModeValueMap` ya almacena `{ Presencial: string, Híbrido: string, Remoto: string }` y la validación en `useRowValidation` compara `workModeValueMap[canonical] === cellValue`, lo que sigue funcionando.
+
+**Lógica de implementación:**
+1. Obtener el índice de la columna mapeada: `const wmColIndex = source.headers.indexOf(mapping['workMode'])`.
+2. Extraer valores únicos no vacíos de esa columna: `const uniqueWmValues = [...new Set(source.rows.map(r => String(r[wmColIndex] ?? '')).filter(Boolean))].sort(...)`.
+3. Reemplazar los `<TextField>` actuales por `<Select>` con `<MenuItem value="">— Sin mapear —</MenuItem>` + un `<MenuItem>` por cada valor único.
+4. Permitir la opción vacía para dejar un valor canónico sin alias (filas con ese valor resultarán inválidas si no coinciden con ningún alias).
+
+**Criterios de aceptación:**
+- [ ] Al mapear la columna Modalidad, el panel de alias muestra selects con los valores únicos del archivo.
+- [ ] Si el archivo tiene "Home Office", "Mixto", "Oficina" → esos valores aparecen como opciones en cada select.
+- [ ] El mismo valor puede asignarse a dos canónicos (edge case válido, no bloquear).
+- [ ] Al cambiar la columna mapeada, los selects se recalculan con los nuevos valores únicos.
+- [ ] El valor guardado en `WorkModeValueMap` es el string tal como aparece en el archivo (sin normalizar).
+
+---
+
+### 18.3 CR-03 — Panel "Vista previa" de campos mapeados
+
+**Solicitud:** Mostrar un panel de vista previa que, por cada campo obligatorio (y opcionalmente los opcionales mapeados), muestre el nombre del campo, la columna asignada y chips con los primeros valores reales del archivo — para validar rápidamente que el mapeo es correcto.
+
+**Análisis de impacto:**
+- Parcialmente previsto en P1-08 (chips) y P1-09 (tabla). No fue implementado.
+- Afecta **exclusivamente** `src/components/steps/Step1Panel.tsx` (nueva sección de UI).
+- No requiere cambios en hooks ni tipos.
+
+**Especificación de UI (basada en el screenshot):**
+
+```
+┌─ Vista previa ────────────────────────────────────────────┐
+│ Primeras filas del archivo para validar rápidamente si el │
+│ mapeo propuesto es correcto.                              │
+│                                                           │
+│  Nombre                              [Nombre]             │
+│  [Valentina] [Facundo] [Franco] [Romina] [Clara] ...      │
+│                                                           │
+│  Apellido                            [Apellido]           │
+│  [Flores] [Quiroga] [Brizuela] [Martínez] ...             │
+│                                                           │
+│  Legajo                              [Sin asignar]        │
+│  Todavía no hay una columna elegida.                      │
+└───────────────────────────────────────────────────────────┘
+```
+
+**Reglas de renderizado:**
+- Mostrar todos los **campos obligatorios** (REQUIRED_FIELDS) siempre, más los opcionales que estén mapeados.
+- Por campo: nombre del campo a la izquierda (bold) + columna asignada a la derecha (caption, color `text.secondary`; "Sin asignar" si NONE_VALUE).
+- Si mapeado: chips con los valores de las primeras 8 filas de esa columna (valores vacíos omitidos).
+- Si no mapeado: texto "Todavía no hay una columna elegida." en caption gris.
+- El panel se muestra SIEMPRE que haya un archivo cargado (debajo del grid de mapeo, antes de los alias de workMode).
+- Actualización en tiempo real al cambiar cualquier select del grid.
+
+**Criterios de aceptación:**
+- [ ] Panel visible en cuanto hay archivo cargado.
+- [ ] Los 5 campos obligatorios siempre aparecen en el panel.
+- [ ] Los campos opcionales mapeados también aparecen.
+- [ ] Los chips muestran valores reales (no headers).
+- [ ] Campo no mapeado → texto gris, sin chips.
+- [ ] Actualización inmediata al cambiar un mapeo.
+
+---
+
+### 18.4 Resumen de archivos afectados
+
+| Archivo | CRs que lo modifican |
+|---------|---------------------|
+| `src/components/steps/Step1Panel.tsx` | CR-01, CR-02, CR-03 |
+
+No se requieren cambios en hooks, context, reducer, tipos ni tests de dominio existentes.
+
+### 18.5 Orden de implementación recomendado
+
+1. **CR-01** (columnas exclusivas) — cambio puntual en el render del grid, sin nueva UI.
+2. **CR-03** (Vista previa) — nueva sección de UI, sin lógica de negocio nueva.
+3. **CR-02** (alias como selects) — reemplaza TextFields por Selects, requiere derivar `uniqueWmValues`.
