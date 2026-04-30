@@ -19,6 +19,7 @@ import { EMPTY_SOURCE_DATA, initialState } from './initialState';
 
 export type WizardAction =
   | { type: 'GO_TO_STEP'; payload: StepNumber }
+  | { type: 'SET_WIZARD_STATE'; payload: WizardState }
   // Step 1
   | { type: 'S1_SET_SOURCE'; payload: FileParseResult }
   | { type: 'S1_SET_MAPPING'; payload: FieldMapping }
@@ -73,6 +74,8 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
   switch (action.type) {
     case 'GO_TO_STEP':
       return { ...state, currentStep: action.payload };
+    case 'SET_WIZARD_STATE':
+      return action.payload;
 
     // ── Step 1 ──
     case 'S1_SET_SOURCE':
