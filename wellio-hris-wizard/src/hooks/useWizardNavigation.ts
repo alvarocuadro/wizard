@@ -15,7 +15,7 @@ function getBlockReasonForStep(step: StepNumber, state: WizardState): string | n
   if (step === 1) {
     const incomplete = REQUIRED_FIELDS.filter((field) => !isStep1FieldConfigured(state, field.key));
     if (incomplete.length > 0) {
-      return `Mapea los campos obligatorios: ${incomplete.map((field) => field.label).join(', ')}.`;
+      return `Faltan columnas obligatorias en la plantilla: ${incomplete.map((field) => field.label).join(', ')}.`;
     }
     const invalidCount = step1.validationResults.filter((result) => !result.valid && !result.omitted).length;
     if (invalidCount > 0) {

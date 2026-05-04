@@ -18,6 +18,10 @@ function excelSerialToDate(serial: number): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
+export function normalizeDatePreview(value: CellValue): string {
+  return normalizeDate(value).value;
+}
+
 function normalizeDate(value: CellValue): { value: string; changed: boolean; detectedFormat: string | null } {
   if (value instanceof Date && !isNaN(value.getTime())) {
     return { value: formatDDMMYYYY(value), changed: true, detectedFormat: 'Date object' };
@@ -152,12 +156,21 @@ export function useRowValidation() {
       mapping: FieldMapping,
       headers: string[],
       workModeMap: WorkModeValueMap,
-      defaultValues: FieldDefaultValues = {}
+      defaultValues: FieldDefaultValues = {},
+      dataStartRowNumber = 2
     ): ValidationResult[] => {
       return rows.map((row, i) => {
         const { normalized, meta } = normalizeRow(row, mapping, headers, workModeMap, defaultValues);
         const errors = validateSingle(normalized);
-        return { rowNumber: i + 2, raw: row, normalized, meta, errors, valid: errors.length === 0, omitted: false };
+        return {
+          rowNumber: i + dataStartRowNumber,
+          raw: row,
+          normalized,
+          meta,
+          errors,
+          valid: errors.length === 0,
+          omitted: false,
+        };
       });
     },
     [normalizeRow, validateSingle]

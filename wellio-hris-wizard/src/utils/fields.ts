@@ -3,6 +3,7 @@ import type { FieldType } from './types';
 export interface WizardField {
   key: string;
   label: string;
+  templateHeader: string;
   required: boolean;
   maxLength?: number;
   type: FieldType;
@@ -15,6 +16,7 @@ export const FIELDS: WizardField[] = [
   {
     key: 'firstName',
     label: 'Nombre',
+    templateHeader: 'Nombres',
     required: true,
     maxLength: 40,
     type: 'text',
@@ -24,6 +26,7 @@ export const FIELDS: WizardField[] = [
   {
     key: 'lastName',
     label: 'Apellido',
+    templateHeader: 'Apellidos',
     required: true,
     maxLength: 40,
     type: 'text',
@@ -33,6 +36,7 @@ export const FIELDS: WizardField[] = [
   {
     key: 'employeeId',
     label: 'Legajo',
+    templateHeader: 'Legajo',
     required: true,
     maxLength: 15,
     type: 'text',
@@ -46,6 +50,7 @@ export const FIELDS: WizardField[] = [
   {
     key: 'hireDate',
     label: 'Fecha de ingreso',
+    templateHeader: 'Fecha de ingreso',
     required: true,
     type: 'date',
     preview: true,
@@ -54,6 +59,7 @@ export const FIELDS: WizardField[] = [
   {
     key: 'workEmail',
     label: 'Email laboral',
+    templateHeader: 'Email',
     required: true,
     type: 'email',
     preview: true,
@@ -66,6 +72,7 @@ export const FIELDS: WizardField[] = [
   {
     key: 'address',
     label: 'Domicilio',
+    templateHeader: 'Domicilio',
     required: false,
     maxLength: 200,
     type: 'text',
@@ -74,6 +81,7 @@ export const FIELDS: WizardField[] = [
   {
     key: 'city',
     label: 'Localidad / Ciudad',
+    templateHeader: 'Localidad / Ciudad',
     required: false,
     maxLength: 60,
     type: 'text',
@@ -82,6 +90,7 @@ export const FIELDS: WizardField[] = [
   {
     key: 'state',
     label: 'Provincia / Estado',
+    templateHeader: 'Provincia / Estado',
     required: false,
     maxLength: 60,
     type: 'text',
@@ -89,6 +98,7 @@ export const FIELDS: WizardField[] = [
   },
   {
     key: 'postalCode',
+    templateHeader: 'Código postal',
     label: 'Código postal',
     required: false,
     maxLength: 15,
@@ -97,6 +107,7 @@ export const FIELDS: WizardField[] = [
   },
   {
     key: 'country',
+    templateHeader: 'País',
     label: 'País',
     required: false,
     maxLength: 60,
@@ -105,6 +116,7 @@ export const FIELDS: WizardField[] = [
   },
   {
     key: 'personalEmail',
+    templateHeader: 'Email personal',
     label: 'Email personal',
     required: false,
     type: 'email',
@@ -112,6 +124,7 @@ export const FIELDS: WizardField[] = [
   },
   {
     key: 'documentNumber',
+    templateHeader: 'Número de documento',
     label: 'Número de documento',
     required: false,
     maxLength: 30,
@@ -120,6 +133,7 @@ export const FIELDS: WizardField[] = [
   },
   {
     key: 'taxId',
+    templateHeader: 'Identificador tributario',
     label: 'Identificador tributario',
     required: false,
     maxLength: 60,
@@ -128,6 +142,7 @@ export const FIELDS: WizardField[] = [
   },
   {
     key: 'birthDate',
+    templateHeader: 'Fecha de nacimiento',
     label: 'Fecha de nacimiento',
     required: false,
     type: 'date',
@@ -135,6 +150,7 @@ export const FIELDS: WizardField[] = [
   },
   {
     key: 'nationality',
+    templateHeader: 'Nacionalidad',
     label: 'Nacionalidad',
     required: false,
     maxLength: 60,
@@ -143,6 +159,7 @@ export const FIELDS: WizardField[] = [
   },
   {
     key: 'gender',
+    templateHeader: 'Género',
     label: 'Género',
     required: false,
     maxLength: 25,
@@ -151,6 +168,7 @@ export const FIELDS: WizardField[] = [
   },
   {
     key: 'location',
+    templateHeader: 'Ubicación',
     label: 'Ubicación',
     required: false,
     maxLength: 100,
@@ -159,6 +177,7 @@ export const FIELDS: WizardField[] = [
   },
   {
     key: 'workday',
+    templateHeader: 'Jornada laboral',
     label: 'Jornada laboral',
     required: false,
     maxLength: 100,
@@ -167,6 +186,7 @@ export const FIELDS: WizardField[] = [
   },
   {
     key: 'workSchedule',
+    templateHeader: 'Horario de trabajo',
     label: 'Horario de trabajo',
     required: false,
     maxLength: 100,
@@ -175,6 +195,7 @@ export const FIELDS: WizardField[] = [
   },
   {
     key: 'workMode',
+    templateHeader: 'Modalidad de trabajo',
     label: 'Modalidad de trabajo',
     required: false,
     type: 'enum',

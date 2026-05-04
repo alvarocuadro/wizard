@@ -16,6 +16,8 @@ export interface FileParseResult {
   fileName: string;
   headers: string[];
   rows: CellValue[][];
+  headerRowNumber: number;
+  dataStartRowNumber: number;
 }
 
 export interface StepSourceData {

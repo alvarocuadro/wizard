@@ -13,7 +13,7 @@ export function FileUploadZone({
   onFile,
   loading = false,
   error,
-  accept = '.xlsx,.xls,.csv',
+  accept = '.xlsx,.xls,.csv,.xltx',
 }: FileUploadZoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
@@ -125,7 +125,7 @@ export function FileUploadZone({
               lineHeight: 1.45,
             }}
           >
-            Puedes cargar archivos xlsx, xls, csv.
+            Puedes cargar archivos xlsx, xls, csv o xltx.
           </Typography>
           {error && (
             <Typography variant="caption" sx={{ color: 'error.main', display: 'block', mt: 1.5 }}>

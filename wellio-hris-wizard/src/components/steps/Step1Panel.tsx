@@ -1,21 +1,21 @@
 import { useCallback } from 'react';
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Box,
-  Typography,
+  Button,
   Card,
   CardContent,
-  Grid,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   Chip,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  TextField,
-  Button,
   Divider,
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+  Typography,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -23,40 +23,27 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import { FileUploadZone } from '../ui/FileUploadZone';
 import { ValidationSummaryBanner } from '../ui/ValidationSummaryBanner';
 import { useFileParser } from '../../hooks/useFileParser';
-import { useColumnDetection } from '../../hooks/useColumnDetection';
-import { useRowValidation } from '../../hooks/useRowValidation';
+import { normalizeDatePreview, useRowValidation } from '../../hooks/useRowValidation';
 import { useWizardContext } from '../../context/WizardContext';
-import { wellioTokens } from '../../theme/wellioTokens';
-import { FIELDS, REQUIRED_FIELDS } from '../../utils/fields';
+import { FIELDS } from '../../utils/fields';
 import { NONE_VALUE, WORK_MODE_VALUES } from '../../utils/constants';
-import { validateFieldValue } from '../../utils/validators';
+import { buildStep1TemplateMapping } from '../../utils/step1Template';
 import type {
   CellValue,
-  FieldMapping,
   FieldDefaultValues,
+  FieldMapping,
   NormalizedRow,
   ValidationResult,
   WorkModeValueMap,
 } from '../../utils/types';
 
-const NONE_LABEL = '--- No mapear ---';
 const EMPTY_DEFAULT_LABEL = '--- Sin valor ---';
-const DEFAULT_HELPER = 'Se aplicara a todas las filas mientras el campo siga sin mapear.';
-const mappedFieldSx = {
-  backgroundColor: wellioTokens.surfaces.successField,
-  '& .MuiOutlinedInput-notchedOutline': {
-    borderColor: wellioTokens.borders.success,
-  },
-  '&:hover .MuiOutlinedInput-notchedOutline': {
-    borderColor: 'success.main',
-  },
-};
+const TEMPLATE_ACCEPT = '.xlsx,.xls,.csv,.xltx';
 
 export function Step1Panel() {
   const { state, dispatch } = useWizardContext();
   const { step1 } = state;
   const { parse, loading, error } = useFileParser();
-  const { detectMappings } = useColumnDetection();
   const { validateAll, validateSingle, buildProcessedRows } = useRowValidation();
 
   const runValidation = useCallback(
@@ -65,9 +52,17 @@ export function Step1Panel() {
       headers: string[],
       mapping: FieldMapping,
       workModeMap: WorkModeValueMap,
-      defaultValues: FieldDefaultValues
+      defaultValues: FieldDefaultValues,
+      dataStartRowNumber: number
     ) => {
-      const results = validateAll(rows, mapping, headers, workModeMap, defaultValues);
+      const results = validateAll(
+        rows,
+        mapping,
+        headers,
+        workModeMap,
+        defaultValues,
+        dataStartRowNumber
+      );
       const processedRows = buildProcessedRows(results);
       dispatch({ type: 'S1_SET_VALIDATION', payload: { results, processedRows } });
     },
@@ -77,56 +72,27 @@ export function Step1Panel() {
   const handleFile = useCallback(
     async (file: File) => {
       try {
-        const result = await parse(file);
+        const result = await parse(file, { mode: 'step1Template' });
+        const mapping = buildStep1TemplateMapping(result.headers);
+
         dispatch({ type: 'S1_SET_SOURCE', payload: result });
         dispatch({ type: 'RESET_FROM_STEP', payload: 2 });
-        const mapping = detectMappings(result.headers);
         dispatch({ type: 'S1_SET_MAPPING', payload: mapping });
+
         runValidation(
           result.rows,
           result.headers,
           mapping,
           step1.workModeValueMap,
-          step1.defaultValues
+          step1.defaultValues,
+          result.dataStartRowNumber
         );
       } catch {
         // Error displayed by FileUploadZone
       }
     },
-    [parse, dispatch, detectMappings, runValidation, step1.workModeValueMap, step1.defaultValues]
+    [parse, dispatch, runValidation, step1.workModeValueMap, step1.defaultValues]
   );
-
-  function handleMappingChange(fieldKey: string, value: string) {
-    const nextMapping: FieldMapping = { ...step1.mapping, [fieldKey]: value };
-    dispatch({ type: 'S1_SET_MAPPING', payload: nextMapping });
-    dispatch({ type: 'RESET_FROM_STEP', payload: 2 });
-
-    if (step1.source?.rows.length) {
-      runValidation(
-        step1.source.rows,
-        step1.source.headers,
-        nextMapping,
-        step1.workModeValueMap,
-        step1.defaultValues
-      );
-    }
-  }
-
-  function handleDefaultValueChange(fieldKey: string, value: string) {
-    const nextDefaults: FieldDefaultValues = { ...step1.defaultValues, [fieldKey]: value };
-    dispatch({ type: 'S1_SET_DEFAULT_VALUES', payload: nextDefaults });
-    dispatch({ type: 'RESET_FROM_STEP', payload: 2 });
-
-    if (step1.source?.rows.length) {
-      runValidation(
-        step1.source.rows,
-        step1.source.headers,
-        step1.mapping,
-        step1.workModeValueMap,
-        nextDefaults
-      );
-    }
-  }
 
   function handleWorkModeChange(key: keyof WorkModeValueMap, value: string) {
     const nextMap: WorkModeValueMap = { ...step1.workModeValueMap, [key]: value };
@@ -138,7 +104,8 @@ export function Step1Panel() {
         step1.source.headers,
         step1.mapping,
         nextMap,
-        step1.defaultValues
+        step1.defaultValues,
+        step1.source.dataStartRowNumber
       );
     }
   }
@@ -155,7 +122,16 @@ export function Step1Panel() {
   }
 
   function handleChangeFile() {
-    dispatch({ type: 'S1_SET_SOURCE', payload: { fileName: '', headers: [], rows: [] } });
+    dispatch({
+      type: 'S1_SET_SOURCE',
+      payload: {
+        fileName: '',
+        headers: [],
+        rows: [],
+        headerRowNumber: 1,
+        dataStartRowNumber: 2,
+      },
+    });
     dispatch({ type: 'S1_RESET_VALIDATION' });
     dispatch({ type: 'RESET_FROM_STEP', payload: 2 });
   }
@@ -167,80 +143,52 @@ export function Step1Panel() {
           Paso 1: Carga de miembros
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
-          Subi el archivo con la informacion de los empleados (Excel o CSV).
+          Subi la plantilla de carga masiva con el formato requerido. La fila 1 debe
+          contener los nombres de campo, la 2 un ejemplo y la 3 la referencia de
+          obligatoriedad.
         </Typography>
-        <FileUploadZone onFile={handleFile} loading={loading} error={error} />
+        <FileUploadZone onFile={handleFile} loading={loading} error={error} accept={TEMPLATE_ACCEPT} />
       </Box>
     );
   }
 
-  const { source, mapping, defaultValues, workModeValueMap, validationResults } = step1;
-
-  const headerOptions = [
-    { value: NONE_VALUE, label: NONE_LABEL },
-    ...source.headers
-      .filter(Boolean)
-      .map((header) => ({ value: header, label: header }))
-      .sort((a, b) => a.label.localeCompare(b.label, 'es', { sensitivity: 'base' })),
-  ];
-
-  const mappedRequired = REQUIRED_FIELDS.filter(
-    (field) => mapping[field.key] && mapping[field.key] !== NONE_VALUE
-  ).length;
-  const allRequiredMapped = mappedRequired === REQUIRED_FIELDS.length;
-  const workModeIsMapped = mapping.workMode && mapping.workMode !== NONE_VALUE;
-  const unmappedFields = FIELDS.filter(
-    (field) => !field.required && (mapping[field.key] ?? NONE_VALUE) === NONE_VALUE
-  );
-
-  const usedColumns = new Set(Object.values(mapping).filter((value) => value && value !== NONE_VALUE));
-
-  const wmColIndex = workModeIsMapped ? source.headers.indexOf(mapping.workMode) : -1;
+  const { source, mapping, workModeValueMap, validationResults } = step1;
+  const workModeHeader = mapping.workMode ?? NONE_VALUE;
+  const workModeIsMapped = workModeHeader !== NONE_VALUE;
+  const workModeColumnIndex = workModeIsMapped ? source.headers.indexOf(workModeHeader) : -1;
   const uniqueWmValues =
-    wmColIndex >= 0
+    workModeColumnIndex >= 0
       ? [
           ...new Set(
             source.rows
-              .map((row) => String(row[wmColIndex] ?? '').trim())
+              .map((row) => String(row[workModeColumnIndex] ?? '').trim())
               .filter(Boolean)
           ),
         ].sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }))
       : [];
 
-  const previewFields = [
-    ...REQUIRED_FIELDS,
-    ...FIELDS.filter(
-      (field) =>
-        !field.required &&
-        ((mapping[field.key] && mapping[field.key] !== NONE_VALUE) ||
-          (defaultValues[field.key] ?? '').trim())
-    ),
-  ].map((field) => {
-    const mappedColumn = mapping[field.key];
-    const defaultValue = defaultValues[field.key] ?? '';
-    const columnIndex =
-      mappedColumn && mappedColumn !== NONE_VALUE ? source.headers.indexOf(mappedColumn) : -1;
-
+  const previewFields = FIELDS.map((field) => {
+    const columnName = mapping[field.key] ?? field.templateHeader;
+    const columnIndex = source.headers.indexOf(columnName);
     const values =
       columnIndex >= 0
         ? [
             ...new Set(
               source.rows
                 .slice(0, 8)
-                .map((row) => String(row[columnIndex] ?? '').trim())
+                .map((row) => {
+                  const rawValue = row[columnIndex];
+                  if (field.key === 'hireDate') {
+                    return normalizeDatePreview(rawValue).trim();
+                  }
+                  return String(rawValue ?? '').trim();
+                })
                 .filter(Boolean)
             ),
           ]
-        : defaultValue.trim()
-          ? [defaultValue.trim()]
-          : [];
+        : [];
 
-    return {
-      field,
-      columnName: columnIndex >= 0 ? mappedColumn : null,
-      values,
-      isDefault: columnIndex < 0 && defaultValue.trim().length > 0,
-    };
+    return { field, columnName, values };
   });
 
   const validCount = validationResults.filter((result) => result.valid && !result.omitted).length;
@@ -264,7 +212,7 @@ export function Step1Panel() {
               {source.fileName}
             </Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              {source.rows.length} filas · {source.headers.length} columnas detectadas
+              {source.rows.length} filas de datos · {source.headers.length} columnas detectadas
             </Typography>
           </Box>
           <Button size="small" variant="outlined" color="error" onClick={handleChangeFile}>
@@ -273,228 +221,22 @@ export function Step1Panel() {
         </CardContent>
       </Card>
 
-      <Accordion defaultExpanded sx={{ mb: 3 }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography sx={{ fontWeight: 700 }}>Mapeo de campos</Typography>
-          <Chip
-            label={`${mappedRequired}/${REQUIRED_FIELDS.length} obligatorios`}
-            size="small"
-            sx={{ ml: 2 }}
-            color={allRequiredMapped ? 'success' : 'warning'}
-          />
-        </AccordionSummary>
-        <AccordionDetails>
-          <Grid container columnSpacing={3} rowSpacing={4}>
-            {FIELDS.map((field) => {
-              const current = mapping[field.key] ?? NONE_VALUE;
-              const isMapped = current !== NONE_VALUE;
-
-              return (
-                <Grid key={field.key} size={{ xs: 12, sm: 6, md: 4 }}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel>
-                      {field.label}
-                      {field.required && (
-                        <Box component="span" sx={{ color: 'error.main' }}>
-                          {' '}
-                          *
-                        </Box>
-                      )}
-                    </InputLabel>
-                    <Select
-                      value={current}
-                      label={`${field.label}${field.required ? ' *' : ''}`}
-                      onChange={(event) => handleMappingChange(field.key, event.target.value)}
-                      sx={isMapped ? mappedFieldSx : undefined}
-                    >
-                      {headerOptions.map((option) => (
-                        <MenuItem
-                          key={option.value}
-                          value={option.value}
-                          disabled={
-                            option.value !== NONE_VALUE &&
-                            usedColumns.has(option.value) &&
-                            option.value !== current
-                          }
-                        >
-                          {option.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-              );
-            })}
-          </Grid>
-
-          {unmappedFields.length > 0 && (
-            <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid', borderColor: 'divider' }}>
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="body2" sx={{ fontWeight: 700, mb: 0.5 }}>
-                  Valores por defecto para campos sin mapear
-                </Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                  Solo para campos opcionales. Si una columna no existe en el archivo, podes completar ese campo una sola vez y se aplicara a todos los miembros.
-                </Typography>
-              </Box>
-
-              <Grid container columnSpacing={3} rowSpacing={4}>
-                {unmappedFields.map((field) => {
-                  const defaultValue = defaultValues[field.key] ?? '';
-                  const defaultErrors = validateFieldValue(defaultValue, {
-                    required: field.required,
-                    type: field.type,
-                    maxLength: field.maxLength,
-                    isNameField: field.key === 'firstName' || field.key === 'lastName',
-                  });
-                  const hasError = defaultValue.trim().length > 0 && defaultErrors.length > 0;
-
-                  return (
-                    <Grid key={`default-${field.key}`} size={{ xs: 12, sm: 6, md: 4 }}>
-                      <Card
-                        variant="outlined"
-                        sx={{
-                          borderRadius: 4,
-                          height: '100%',
-                          borderColor:
-                            defaultValue.trim().length > 0 && defaultErrors.length === 0
-                              ? 'success.main'
-                              : undefined,
-                          backgroundColor:
-                            defaultValue.trim().length > 0 && defaultErrors.length === 0
-                              ? 'success.light'
-                              : undefined,
-                        }}
-                      >
-                        <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              gap: 1,
-                              mb: 1.5,
-                            }}
-                          >
-                            <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                              {field.label}
-                            </Typography>
-                            <Chip
-                              size="small"
-                              label={field.required ? 'Obligatorio' : 'Opcional'}
-                              color={field.required ? 'warning' : 'default'}
-                              variant={field.required ? 'filled' : 'outlined'}
-                            />
-                          </Box>
-
-                          {field.type === 'enum' ? (
-                            <FormControl fullWidth size="small" error={hasError}>
-                              <InputLabel>Valor por defecto</InputLabel>
-                              <Select
-                                value={defaultValue}
-                                label="Valor por defecto"
-                                onChange={(event) =>
-                                  handleDefaultValueChange(field.key, event.target.value)
-                                }
-                              >
-                                <MenuItem value="">{EMPTY_DEFAULT_LABEL}</MenuItem>
-                                {WORK_MODE_VALUES.map((value) => (
-                                  <MenuItem key={value} value={value}>
-                                    {value}
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                            </FormControl>
-                          ) : (
-                            <TextField
-                              size="small"
-                              fullWidth
-                              label="Valor por defecto"
-                              placeholder={field.type === 'date' ? 'DD/MM/AAAA' : ''}
-                              value={defaultValue}
-                              onChange={(event) =>
-                                handleDefaultValueChange(field.key, event.target.value)
-                              }
-                              error={hasError}
-                            />
-                          )}
-
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              mt: 1,
-                              minHeight: 32,
-                              display: 'block',
-                              color: hasError ? 'error.main' : 'text.secondary',
-                            }}
-                          >
-                            {hasError ? defaultErrors[0] : DEFAULT_HELPER}
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  );
-                })}
-              </Grid>
-            </Box>
-          )}
-
-          {workModeIsMapped && (
-            <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid', borderColor: 'divider' }}>
-              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                Valores de modalidad en el archivo
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ color: 'text.secondary', display: 'block', mb: 2 }}
-              >
-                {uniqueWmValues.length > 0
-                  ? 'Indica a que modalidad canonica corresponde cada valor encontrado.'
-                  : 'No se encontraron valores en la columna seleccionada.'}
-              </Typography>
-              {uniqueWmValues.length > 0 && (
-                <Grid container columnSpacing={3} rowSpacing={4}>
-                  {WORK_MODE_VALUES.map((mode) => (
-                    <Grid key={mode} size={{ xs: 12, sm: 4 }}>
-                      <FormControl size="small" fullWidth>
-                        <InputLabel>{mode}</InputLabel>
-                        <Select
-                          value={workModeValueMap[mode as keyof WorkModeValueMap] ?? ''}
-                          label={mode}
-                          onChange={(event) =>
-                            handleWorkModeChange(
-                              mode as keyof WorkModeValueMap,
-                              event.target.value
-                            )
-                          }
-                        >
-                          <MenuItem value="">{EMPTY_DEFAULT_LABEL}</MenuItem>
-                          {uniqueWmValues.map((value) => (
-                            <MenuItem key={value} value={value}>
-                              {value}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                  ))}
-                </Grid>
-              )}
-            </Box>
-          )}
-        </AccordionDetails>
-      </Accordion>
-
       <Card variant="outlined" sx={{ mb: 3, borderRadius: 4 }}>
         <CardContent>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
             Vista previa
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-            Primeras filas del archivo para validar rapido si el mapeo propuesto es correcto.
+            Primeras filas del archivo para validar rapido si la plantilla fue completada
+            correctamente.
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 2.5 }}>
+            Se toma la fila {source.headerRowNumber} como encabezado, se ignoran las filas{' '}
+            {source.headerRowNumber + 1} y {source.headerRowNumber + 2} como ejemplo y referencia,
+            y los datos se validan desde la fila {source.dataStartRowNumber}.
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-            {previewFields.map(({ field, columnName, values, isDefault }) => (
+            {previewFields.map(({ field, columnName, values }) => (
               <Box key={field.key}>
                 <Box
                   sx={{
@@ -508,7 +250,7 @@ export function Step1Panel() {
                     {field.label}
                   </Typography>
                   <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    {columnName ?? (isDefault ? 'Valor por defecto' : 'Sin asignar')}
+                    {columnName}
                   </Typography>
                 </Box>
                 {values.length > 0 ? (
@@ -519,7 +261,7 @@ export function Step1Panel() {
                   </Box>
                 ) : (
                   <Typography variant="caption" sx={{ color: 'text.disabled' }}>
-                    Todavia no hay una columna elegida.
+                    Todavia no hay valores cargados para esta columna.
                   </Typography>
                 )}
               </Box>
@@ -527,6 +269,45 @@ export function Step1Panel() {
           </Box>
         </CardContent>
       </Card>
+
+      {workModeIsMapped && uniqueWmValues.length > 0 && (
+        <Card variant="outlined" sx={{ mb: 3, borderRadius: 4 }}>
+          <CardContent>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
+              Valores de modalidad
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+              Indica a que modalidad canonica corresponde cada valor encontrado en el archivo.
+            </Typography>
+            <Grid container columnSpacing={3} rowSpacing={4}>
+              {WORK_MODE_VALUES.map((mode) => (
+                <Grid key={mode} size={{ xs: 12, sm: 4 }}>
+                  <FormControl size="small" fullWidth>
+                    <InputLabel>{mode}</InputLabel>
+                    <Select
+                      value={workModeValueMap[mode as keyof WorkModeValueMap] ?? ''}
+                      label={mode}
+                      onChange={(event) =>
+                        handleWorkModeChange(
+                          mode as keyof WorkModeValueMap,
+                          event.target.value
+                        )
+                      }
+                    >
+                      <MenuItem value="">{EMPTY_DEFAULT_LABEL}</MenuItem>
+                      {uniqueWmValues.map((value) => (
+                        <MenuItem key={value} value={value}>
+                          {value}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              ))}
+            </Grid>
+          </CardContent>
+        </Card>
+      )}
 
       <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
         <Button
