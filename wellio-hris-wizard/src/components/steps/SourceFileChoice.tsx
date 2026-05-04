@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Box, FormControl, FormControlLabel, Radio, RadioGroup, Typography } from '@mui/material';
 import { FileUploadZone } from '../ui/FileUploadZone';
-import { useFileParser } from '../../hooks/useFileParser';
+import { useFileParser, type ParseMode } from '../../hooks/useFileParser';
 import type { FileParseResult, SourceMode } from '../../utils/types';
 
 interface SourceFileChoiceProps {
@@ -10,6 +10,7 @@ interface SourceFileChoiceProps {
   onSameFile: () => void;
   onOtherFile: (result: FileParseResult) => void;
   currentOtherFileName?: string;
+  parseMode?: ParseMode;
 }
 
 export function SourceFileChoice({
@@ -18,6 +19,7 @@ export function SourceFileChoice({
   onSameFile,
   onOtherFile,
   currentOtherFileName,
+  parseMode = 'default',
 }: SourceFileChoiceProps) {
   const { parse, loading, error } = useFileParser();
   const [uiMode, setUiMode] = useState<SourceMode>(mode);
@@ -29,7 +31,7 @@ export function SourceFileChoice({
 
   async function handleFile(file: File) {
     try {
-      const result = await parse(file);
+      const result = await parse(file, { mode: parseMode });
       onOtherFile(result);
     } catch {
       // error displayed in zone

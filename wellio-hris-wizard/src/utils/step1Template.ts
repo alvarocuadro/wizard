@@ -3,6 +3,7 @@ import { FIELDS } from './fields';
 import { normalize } from './normalize';
 import type { FieldMapping } from './types';
 
+export const STEP1_TEMPLATE_SHEET_NAME = 'Miembros';
 export const STEP1_TEMPLATE_HEADERS = [
   'Nombres',
   'Apellidos',
@@ -26,6 +27,14 @@ export const STEP1_TEMPLATE_HEADERS = [
   'Modalidad de trabajo',
 ] as const;
 export const STEP1_TEMPLATE_METADATA_ROWS = 2;
+
+export function validateStep1TemplateSheetName(sheetName: string): string | null {
+  if (sheetName.trim() !== STEP1_TEMPLATE_SHEET_NAME) {
+    return `La hoja del paso 1 debe llamarse "${STEP1_TEMPLATE_SHEET_NAME}" y se encontro "${sheetName || 'vacia'}".`;
+  }
+
+  return null;
+}
 
 export function validateStep1TemplateHeaders(headers: readonly string[]): string | null {
   if (headers.length !== STEP1_TEMPLATE_HEADERS.length) {

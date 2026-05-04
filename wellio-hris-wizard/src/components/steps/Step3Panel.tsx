@@ -54,7 +54,14 @@ export function Step3Panel() {
   function handleSameFile() {
     dispatch({
       type: 'S3_SET_SOURCE_DATA',
-      payload: { mode: 'same', fileName: '', headers: [], rows: [] },
+      payload: {
+        mode: 'same',
+        fileName: '',
+        headers: [],
+        rows: [],
+        headerRowNumber: 1,
+        dataStartRowNumber: 2,
+      },
     });
     dispatch({ type: 'S3_SET_COLUMN', payload: NONE_VALUE });
     dispatch({ type: 'S3_SET_CATALOG', payload: [] });

@@ -6,6 +6,8 @@ export const EMPTY_SOURCE_DATA: StepSourceData = {
   fileName: '',
   headers: [],
   rows: [],
+  headerRowNumber: 1,
+  dataStartRowNumber: 2,
 };
 
 export const initialState: WizardState = {

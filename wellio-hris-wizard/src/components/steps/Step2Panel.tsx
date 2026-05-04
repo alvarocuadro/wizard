@@ -1,121 +1,99 @@
 import { useEffect, useRef } from 'react';
 import {
+  Alert,
   Box,
-  Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Card,
   CardContent,
   Checkbox,
-  FormControlLabel,
   Chip,
+  FormControlLabel,
+  Typography,
 } from '@mui/material';
 import { ValidationSummaryBanner } from '../ui/ValidationSummaryBanner';
 import { SourceFileChoice } from './SourceFileChoice';
 import { CharCounterInput } from '../ui/CharCounterInput';
 import { useWizardContext } from '../../context/WizardContext';
-import { useColumnDetection } from '../../hooks/useColumnDetection';
 import { useRolesCatalog } from '../../hooks/useRolesCatalog';
+import { useFileParser } from '../../hooks/useFileParser';
 import { NONE_VALUE } from '../../utils/constants';
 import type { FileParseResult, RoleCatalogItem } from '../../utils/types';
 
 export function Step2Panel() {
   const { state, dispatch } = useWizardContext();
   const { step1, step2 } = state;
-  const { detectRoleColumn } = useColumnDetection();
   const rolesCatalog = useRolesCatalog();
-  const initialDetectDone = useRef(false);
-
-  const effectiveSource =
-    step2.sourceData.mode === 'same' && step1.source
-      ? step1.source
-      : step2.sourceData.headers.length > 0
-      ? step2.sourceData
-      : null;
+  const { parseStored, error, clearError } = useFileParser();
+  const initialLoadDone = useRef(false);
 
   useEffect(() => {
-    if (initialDetectDone.current || !effectiveSource || step2.selectedColumn !== NONE_VALUE) return;
-    initialDetectDone.current = true;
-    const col = detectRoleColumn(effectiveSource.headers);
-    dispatch({ type: 'S2_SET_COLUMN', payload: col });
-    if (col !== NONE_VALUE) {
-      const catalog = rolesCatalog.build(
-        effectiveSource.rows,
-        effectiveSource.headers,
-        col,
-        step2.catalog
-      );
-      dispatch({ type: 'S2_SET_CATALOG', payload: catalog });
+    async function loadSameFile() {
+      if (!step1.source?.fileName) return;
+
+      try {
+        const result = await parseStored(step1.source.fileName, { mode: 'step2Roles' });
+        dispatch({ type: 'S2_SET_SOURCE_DATA', payload: { mode: 'same', ...result } });
+        dispatch({ type: 'S2_SET_COLUMN', payload: 'A' });
+        dispatch({
+          type: 'S2_SET_CATALOG',
+          payload: rolesCatalog.build(result.rows, step2.catalog),
+        });
+        dispatch({ type: 'RESET_FROM_STEP', payload: 3 });
+      } catch {
+        dispatch({ type: 'S2_SET_COLUMN', payload: NONE_VALUE });
+        dispatch({ type: 'S2_SET_CATALOG', payload: [] });
+      }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+    if (step2.sourceData.mode !== 'same') return;
+    if (initialLoadDone.current && step2.sourceData.fileName === step1.source?.fileName) return;
+
+    initialLoadDone.current = true;
+    void loadSameFile();
+  }, [dispatch, parseStored, rolesCatalog, step1.source?.fileName, step2.catalog, step2.sourceData.fileName, step2.sourceData.mode]);
 
   function handleSameFile() {
-    dispatch({ type: 'S2_SET_SOURCE_DATA', payload: { mode: 'same', fileName: '', headers: [], rows: [] } });
+    clearError();
+    dispatch({
+      type: 'S2_SET_SOURCE_DATA',
+      payload: {
+        mode: 'same',
+        fileName: '',
+        headers: [],
+        rows: [],
+        headerRowNumber: 1,
+        dataStartRowNumber: 2,
+      },
+    });
     dispatch({ type: 'S2_SET_COLUMN', payload: NONE_VALUE });
     dispatch({ type: 'S2_SET_CATALOG', payload: [] });
     dispatch({ type: 'RESET_FROM_STEP', payload: 3 });
-    initialDetectDone.current = false;
+    initialLoadDone.current = false;
   }
 
   function handleOtherFile(result: FileParseResult) {
-    if (!result.headers.length) return;
+    clearError();
     dispatch({ type: 'S2_SET_SOURCE_DATA', payload: { mode: 'other', ...result } });
-    const col = detectRoleColumn(result.headers);
-    dispatch({ type: 'S2_SET_COLUMN', payload: col });
-    if (col !== NONE_VALUE) {
-      const catalog = rolesCatalog.build(result.rows, result.headers, col, []);
-      dispatch({ type: 'S2_SET_CATALOG', payload: catalog });
-    } else {
-      dispatch({ type: 'S2_SET_CATALOG', payload: [] });
-    }
-    dispatch({ type: 'RESET_FROM_STEP', payload: 3 });
-  }
-
-  function handleColumnChange(col: string) {
-    dispatch({ type: 'S2_SET_COLUMN', payload: col });
-    if (!effectiveSource) return;
-    if (col !== NONE_VALUE) {
-      const catalog = rolesCatalog.build(
-        effectiveSource.rows,
-        effectiveSource.headers,
-        col,
-        step2.catalog
-      );
-      dispatch({ type: 'S2_SET_CATALOG', payload: catalog });
-    } else {
-      dispatch({ type: 'S2_SET_CATALOG', payload: [] });
-    }
+    dispatch({ type: 'S2_SET_COLUMN', payload: 'A' });
+    dispatch({ type: 'S2_SET_CATALOG', payload: rolesCatalog.build(result.rows, []) });
     dispatch({ type: 'RESET_FROM_STEP', payload: 3 });
   }
 
   function handleRoleChange(id: string, changes: Partial<RoleCatalogItem>) {
-    const updated = step2.catalog.map((r) => (r.id === id ? { ...r, ...changes } : r));
+    const updated = step2.catalog.map((role) => (role.id === id ? { ...role, ...changes } : role));
     const revalidated = rolesCatalog.validate(updated);
     dispatch({ type: 'S2_SET_CATALOG', payload: revalidated });
   }
 
   const summary = rolesCatalog.summary(step2.catalog);
-  const noneOpt = { value: NONE_VALUE, label: '— Seleccioná una columna —' };
-  const headerOptions = effectiveSource
-    ? [
-        noneOpt,
-        ...effectiveSource.headers
-          .filter(Boolean)
-          .map((h) => ({ value: h, label: h }))
-          .sort((a, b) => a.label.localeCompare(b.label, 'es', { sensitivity: 'base' })),
-      ]
-    : [noneOpt];
 
   return (
     <Box>
       <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
-        Paso 2: Catálogo de roles
+        Paso 2: Catalogo de roles
       </Typography>
       <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
-        Seleccioná la columna que contiene los roles del archivo.
+        Los datos se leen desde la hoja <strong>Roles</strong>. La columna A define el nombre
+        del rol y la columna B marca <strong>Tiene reportes</strong> cuando contiene "si".
       </Typography>
 
       <Card variant="outlined" sx={{ mb: 4, borderRadius: 4 }}>
@@ -131,27 +109,29 @@ export function Step2Panel() {
             currentOtherFileName={
               step2.sourceData.mode === 'other' ? step2.sourceData.fileName : undefined
             }
+            parseMode="step2Roles"
           />
+          {error && (
+            <Alert severity="error" sx={{ mt: 2, borderRadius: 3 }}>
+              {error}
+            </Alert>
+          )}
         </CardContent>
       </Card>
 
-      {effectiveSource && (
-        <Box sx={{ mb: 4 }}>
-          <FormControl fullWidth size="small">
-            <InputLabel>Columna de roles *</InputLabel>
-            <Select
-              value={step2.selectedColumn}
-              label="Columna de roles *"
-              onChange={(e) => handleColumnChange(e.target.value)}
-            >
-              {headerOptions.map((opt) => (
-                <MenuItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
+      {step2.sourceData.fileName && (
+        <Card variant="outlined" sx={{ mb: 3, borderRadius: 4 }}>
+          <CardContent>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
+              Hoja Roles detectada
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              Se toman los titulos de la fila {step2.sourceData.headerRowNumber} y los datos
+              desde la fila {step2.sourceData.dataStartRowNumber}. La columna A es obligatoria
+              y la B interpreta "si" como rol con reportes.
+            </Typography>
+          </CardContent>
+        </Card>
       )}
 
       {step2.catalog.length > 0 && (
@@ -175,7 +155,7 @@ export function Step2Panel() {
                     <Box sx={{ flex: 1, minWidth: 200 }}>
                       <CharCounterInput
                         value={role.name}
-                        onChange={(v) => handleRoleChange(role.id, { name: v })}
+                        onChange={(value) => handleRoleChange(role.id, { name: value })}
                         maxLength={40}
                         label="Nombre del rol"
                         error={!role.valid}
@@ -186,7 +166,9 @@ export function Step2Panel() {
                         <Checkbox
                           size="small"
                           checked={role.hasReports}
-                          onChange={(e) => handleRoleChange(role.id, { hasReports: e.target.checked })}
+                          onChange={(e) =>
+                            handleRoleChange(role.id, { hasReports: e.target.checked })
+                          }
                         />
                       }
                       label={<Typography variant="body2">Tiene reportes</Typography>}
@@ -207,7 +189,7 @@ export function Step2Panel() {
         </Box>
       )}
 
-      {effectiveSource && step2.selectedColumn === NONE_VALUE && (
+      {step2.sourceData.fileName && step2.catalog.length === 0 && !error && (
         <Box
           sx={{
             border: '1px dashed',
@@ -218,7 +200,7 @@ export function Step2Panel() {
           }}
         >
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            Seleccioná una columna para ver el catálogo de roles
+            No se encontraron roles cargados en la hoja Roles.
           </Typography>
         </Box>
       )}

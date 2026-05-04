@@ -26,10 +26,10 @@ function getBlockReasonForStep(step: StepNumber, state: WizardState): string | n
 
   if (step === 2) {
     if (!step2.selectedColumn || step2.selectedColumn === NONE_VALUE) {
-      return 'Selecciona una columna de roles.';
+      return 'Carga un archivo con la hoja Roles para continuar.';
     }
     if (step2.catalog.length === 0) {
-      return 'No se encontraron roles en la columna seleccionada.';
+      return 'No se encontraron roles validos en la hoja Roles.';
     }
     if (step2.catalog.some((role) => !role.valid)) {
       return 'Corrige los errores en los roles antes de continuar.';

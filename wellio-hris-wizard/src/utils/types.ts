@@ -25,6 +25,8 @@ export interface StepSourceData {
   fileName: string;
   headers: string[];
   rows: CellValue[][];
+  headerRowNumber: number;
+  dataStartRowNumber: number;
 }
 
 // ─── Field mapping (Step 1) ───────────────────────────────────────────────────

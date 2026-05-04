@@ -60,7 +60,17 @@ export function Step4Panel() {
   }, []);
 
   function handleSameFile() {
-    dispatch({ type: 'S4_SET_SOURCE_DATA', payload: { mode: 'same', fileName: '', headers: [], rows: [] } });
+    dispatch({
+      type: 'S4_SET_SOURCE_DATA',
+      payload: {
+        mode: 'same',
+        fileName: '',
+        headers: [],
+        rows: [],
+        headerRowNumber: 1,
+        dataStartRowNumber: 2,
+      },
+    });
     dispatch({ type: 'S4_SET_COLUMN_MAPPING', payload: { member: NONE_VALUE, role: NONE_VALUE, team: NONE_VALUE } });
     dispatch({ type: 'S4_SET_CATALOG', payload: [] });
     dispatch({ type: 'RESET_FROM_STEP', payload: 5 });
