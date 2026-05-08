@@ -114,7 +114,7 @@ export function WizardHeader() {
       </Box>
 
       <Typography variant="h4" gutterBottom sx={{ fontWeight: 800, color: 'primary.main' }}>
-        Wellio HRIS
+        HRIS Wizard
       </Typography>
       <Typography variant="subtitle1" sx={{ color: 'text.secondary' }}>
         Configuracion inicial de la estructura organizacional
