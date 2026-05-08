@@ -1,0 +1,242 @@
+{
+  "name": "Frontend Designer Skill - Wellio",
+  "version": "1.0.0",
+  "description": "Skill para Claude Code: analiza imágenes de diseño y reconvierte componentes React + MUI según tokens Wellio",
+  "scope": "frontend-components",
+  "brand": {
+    "name": "Wellio",
+    "version": "1.0"
+  },
+  "context": {
+    "stack": {
+      "framework": "React 18+",
+      "bundler": "Vite",
+      "ui-library": "Material-UI v5 (MUI)",
+      "state-management": "Preact Signals + React Hook Form",
+      "shared-lib": "@iam/shared-lib"
+    },
+    "architecture": {
+      "pattern": "4-layer architecture",
+      "layers": [
+        {
+          "name": "UI Component",
+          "location": "src/components",
+          "description": "Componentes React con MUI, sin lógica"
+        },
+        {
+          "name": "Custom Hook",
+          "location": "src/hooks",
+          "description": "Lógica de estado y efectos, usa Preact Signals"
+        },
+        {
+          "name": "Handler",
+          "location": "src/handlers",
+          "description": "Orquestación de acciones y llamadas a servicios"
+        },
+        {
+          "name": "Service/Repository",
+          "location": "src/services",
+          "description": "API calls, transformaciones de datos"
+        }
+      ]
+    },
+    "designTokens": {
+      "typography": {
+        "fontFamily": "Inter, sans-serif",
+        "variants": {
+          "h1": {
+            "fontSize": "96px",
+            "fontWeight": 600,
+            "lineHeight": 1.2
+          },
+          "h2": {
+            "fontSize": "60px",
+            "fontWeight": 600,
+            "lineHeight": 1.2
+          },
+          "h3": {
+            "fontSize": "48px",
+            "fontWeight": 600,
+            "lineHeight": 1.2
+          },
+          "h4": {
+            "fontSize": "34px",
+            "fontWeight": 600,
+            "lineHeight": 1.2
+          },
+          "h5": {
+            "fontSize": "24px",
+            "fontWeight": 600,
+            "lineHeight": 1.2
+          },
+          "h6": {
+            "fontSize": "20px",
+            "fontWeight": 600,
+            "lineHeight": 1.2
+          },
+          "subtitle1": {
+            "fontSize": "18px",
+            "fontWeight": 500,
+            "lineHeight": 1.4
+          },
+          "subtitle2": {
+            "fontSize": "16px",
+            "fontWeight": 500,
+            "lineHeight": 1.4
+          },
+          "subtitle3": {
+            "fontSize": "14px",
+            "fontWeight": 500,
+            "lineHeight": 1.4
+          },
+          "bodyL": {
+            "fontSize": "18px",
+            "fontWeight": 400,
+            "lineHeight": 1.5
+          },
+          "bodyM": {
+            "fontSize": "16px",
+            "fontWeight": 400,
+            "lineHeight": 1.5
+          },
+          "bodyS": {
+            "fontSize": "14px",
+            "fontWeight": 400,
+            "lineHeight": 1.5
+          },
+          "caption": {
+            "fontSize": "12px",
+            "fontWeight": 400,
+            "lineHeight": 1.5
+          }
+        }
+      },
+      "colors": {
+        "primary": {
+          "light": "#E8DFFF",
+          "main": "#7C3AED",
+          "dark": "#5B21B6",
+          "contrast": "#FFFFFF"
+        },
+        "secondary": {
+          "light": "#FED7AA",
+          "main": "#FB923C",
+          "dark": "#D97706",
+          "contrast": "#FFFFFF"
+        },
+        "success": {
+          "light": "#D1FAE5",
+          "main": "#10B981",
+          "dark": "#047857",
+          "contrast": "#FFFFFF"
+        },
+        "error": {
+          "light": "#FEE2E2",
+          "main": "#EF4444",
+          "dark": "#DC2626",
+          "contrast": "#FFFFFF"
+        },
+        "warning": {
+          "light": "#FEF3C7",
+          "main": "#F59E0B",
+          "dark": "#D97706",
+          "contrast": "#FFFFFF"
+        },
+        "info": {
+          "light": "#DBEAFE",
+          "main": "#3B82F6",
+          "dark": "#1D4ED8",
+          "contrast": "#FFFFFF"
+        },
+        "neutral": {
+          "light": "#F3F4F6",
+          "main": "#D1D5DB",
+          "dark": "#6B7280"
+        },
+        "background": "#FFFFFF",
+        "surface": "#F9FAFB",
+        "border": "#E5E7EB"
+      },
+      "spacing": {
+        "xs": "4px",
+        "sm": "8px",
+        "md": "16px",
+        "lg": "24px",
+        "xl": "32px",
+        "2xl": "48px"
+      },
+      "borderRadius": {
+        "small": "4px",
+        "medium": "8px",
+        "large": "12px",
+        "full": "999px"
+      },
+      "shadows": {
+        "sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+        "md": "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        "lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+        "xl": "0 20px 25px -5px rgba(0, 0, 0, 0.1)"
+      }
+    },
+    "componentTokens": {
+      "button": {
+        "contained": {
+          "backgroundColor": "#7C3AED",
+          "color": "#FFFFFF",
+          "padding": "12px 24px",
+          "borderRadius": "8px",
+          "fontWeight": 600
+        },
+        "outlined": {
+          "backgroundColor": "transparent",
+          "color": "#7C3AED",
+          "padding": "12px 24px",
+          "borderRadius": "8px",
+          "border": "2px solid #7C3AED",
+          "fontWeight": 600
+        },
+        "text": {
+          "backgroundColor": "transparent",
+          "color": "#7C3AED",
+          "padding": "12px 24px",
+          "borderRadius": "8px",
+          "border": "none",
+          "fontWeight": 600
+        }
+      },
+      "input": {
+        "padding": "12px 16px",
+        "borderRadius": "8px",
+        "border": "1px solid #E5E7EB",
+        "backgroundColor": "#FFFFFF",
+        "fontSize": "14px"
+      },
+      "chip": {
+        "padding": "6px 12px",
+        "borderRadius": "16px",
+        "fontSize": "12px"
+      },
+      "alert": {
+        "borderRadius": "8px",
+        "padding": "16px",
+        "border": "1px solid"
+      }
+    },
+    "stylingApproach": {
+      "method": "MUI sx prop exclusively",
+      "rules": [
+        "Usar SOLO sx prop de MUI para estilos",
+        "NO usar Tailwind, styled-components, CSS modules",
+        "Preferir componentes MUI sobre divs",
+        "Usar theme.palette para colores (tokens Wellio)",
+        "Usar theme.spacing() para espaciado",
+        "Usar theme.typography para tipografía",
+        "Font family SIEMPRE es: Inter, sans-serif",
+        "Importar tokens de designTokens.ts cuando sea necesario"
+      ]
+    },
+    "examples": []
+  },
+  "systemPrompt": "Eres un experto en Frontend Development especializado en React, Material-UI v5 y la marca WELLIO.\n\nTu rol es:\n1. Analizar imágenes de diseños y extraer componentes MUI y design tokens Wellio\n2. Reconvertir código React existente para que coincida exactamente con diseños proporcionados\n3. Mantener la arquitectura 4-capas del proyecto\n4. Generar código TypeScript limpio, tipado y listo para producción\n5. Usar SOLO sx prop de MUI\n\nTOKENS WELLIO - CRÍTICO RESPETAR:\n\nCOLORES:\n- Primary: #7C3AED (light: #E8DFFF, dark: #5B21B6)\n- Secondary: #FB923C (light: #FED7AA, dark: #D97706)\n- Success: #10B981 (light: #D1FAE5, dark: #047857)\n- Error: #EF4444 (light: #FEE2E2, dark: #DC2626)\n- Warning: #F59E0B (light: #FEF3C7, dark: #D97706)\n- Info: #3B82F6 (light: #DBEAFE, dark: #1D4ED8)\n- Neutral: #D1D5DB (light: #F3F4F6, dark: #6B7280)\n- Background: #FFFFFF\n- Surface: #F9FAFB\n- Border: #E5E7EB\n\nTIPOGRAFÍA:\n- Font Family: Inter, sans-serif (OBLIGATORIO)\n- Headings (h1-h6): fontWeight 600, lineHeight 1.2\n- Subtitles (subtitle1-3): fontWeight 500, lineHeight 1.4\n- Body (bodyL/M/S): fontWeight 400, lineHeight 1.5\n- Caption: fontSize 12px, fontWeight 400\n\nESPACIADO (ESCALA):\n- xs: 4px | sm: 8px | md: 16px | lg: 24px | xl: 32px | 2xl: 48px\n\nBORDER RADIUS:\n- small: 4px | medium: 8px | large: 12px | full: 999px\n\nSOBRAS:\n- sm: 0 1px 2px | md: 0 4px 6px | lg: 0 10px 15px | xl: 0 20px 25px\n\nREGLAS CRÍTICAS:\n- Componentes en src/components/{feature}/\n- Hooks personalizados en src/hooks/\n- Lógica de negocio en src/services/\n- Siempre usa MUI components (Card, Button, TextField, etc.)\n- Respeta design tokens Wellio (no improvises colores)\n- Genera código TypeScript con tipos explícitos\n- Prefiere componentes MUI sobre divs\n- Usa sx prop para TODOS los estilos\n- Mocked data por defecto en ejemplos\n- Responsive design considerando mobile-first\n- Accesibilidad WCAG (labels, ARIA, etc.)\n\nCuando analices una imagen:\n1. Identifica componentes MUI usados\n2. Extrae colores (mapear a palette Wellio)\n3. Extrae tipografía (Inter, pesos, tamaños)\n4. Extrae espaciado (escala de 4/8/16/24/32/48)\n5. Compara con tokens Wellio\n6. Proporciona recomendaciones\n7. Genera código optimizado\n\nResponde con código JavaScript/TypeScript puro, sin explicaciones innecesarias a menos que se solicite.",
+  "imageAnalysisPrompt": "Analiza esta imagen de diseño/screenshot y proporciona:\n\n1. **Componentes MUI identificados** (Card, Button, TextField, Avatar, etc.)\n2. **Design Tokens extraídos** mapeados a Wellio:\n   - Colores (hex codes mapeados a palette Wellio)\n   - Tipografía (familia Inter, tamaño, peso)\n   - Espaciado (px/rem en escala 4/8/16/24/32/48)\n   - Border radius (small/medium/large/full)\n   - Shadows (sm/md/lg/xl)\n3. **Recomendaciones** de cómo refactorizar el código actual\n4. **Código completo refactorizado** que implemente exactamente este diseño\n\nUsa SIEMPRE los tokens Wellio. Mantén la estructura 4-capas."
+}

@@ -6,8 +6,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Card,
-  CardContent,
   Checkbox,
   FormControlLabel,
   Chip,
@@ -22,6 +20,62 @@ import { useRolesCatalog } from '../../hooks/useRolesCatalog';
 import { parseSheet } from '../../utils/workbookCache';
 import { NONE_VALUE } from '../../utils/constants';
 import type { FileParseResult, RoleCatalogItem } from '../../utils/types';
+
+function SectionCard({ children, sx = {} }: { children: React.ReactNode; sx?: object }) {
+  return (
+    <Box
+      sx={{
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: '12px',
+        bgcolor: 'background.paper',
+        overflow: 'hidden',
+        mb: 3,
+        ...sx,
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
+
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <Box sx={{ px: 3, py: 2, borderBottom: '1px solid', borderColor: 'divider', bgcolor: '#FAFAFA' }}>
+      <Typography sx={{ fontWeight: 700, fontSize: '14px', color: '#374151' }}>
+        {children}
+      </Typography>
+    </Box>
+  );
+}
+
+function StepHeader({ step, title, subtitle }: { step: number; title: string; subtitle: string }) {
+  return (
+    <Box sx={{ mb: 4 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
+        <Box
+          sx={{
+            width: 28, height: 28,
+            borderRadius: '8px',
+            bgcolor: 'primary.light',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <Typography sx={{ fontSize: '12px', fontWeight: 800, color: 'primary.main', lineHeight: 1 }}>
+            {step}
+          </Typography>
+        </Box>
+        <Typography variant="h6" sx={{ fontWeight: 700, color: '#111827' }}>
+          {title}
+        </Typography>
+      </Box>
+      <Typography variant="body2" sx={{ color: '#6B7280', pl: '42px' }}>
+        {subtitle}
+      </Typography>
+    </Box>
+  );
+}
 
 export function Step2Panel() {
   const { state, dispatch } = useWizardContext();
@@ -126,18 +180,15 @@ export function Step2Panel() {
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
-        Paso 2: Catálogo de roles
-      </Typography>
-      <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
-        Seleccioná la columna que contiene los roles del archivo.
-      </Typography>
+      <StepHeader
+        step={2}
+        title="Catálogo de roles"
+        subtitle="Seleccioná la columna que contiene los roles del archivo."
+      />
 
-      <Card variant="outlined" sx={{ mb: 3, borderRadius: 3 }}>
-        <CardContent>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
-            Archivo fuente
-          </Typography>
+      <SectionCard>
+        <SectionHeader>Archivo fuente</SectionHeader>
+        <Box sx={{ p: 3 }}>
           <SourceFileChoice
             step1FileName={step1.source?.fileName ?? ''}
             mode={step2.sourceData.mode}
@@ -154,25 +205,46 @@ export function Step2Panel() {
               onChange={handleSheetChange}
             />
           )}
-        </CardContent>
-      </Card>
+        </Box>
+      </SectionCard>
 
       {effectiveSource && (
-        <Box sx={{ mb: 3 }}>
-          <FormControl fullWidth size="small">
-            <InputLabel>Columna de roles *</InputLabel>
-            <Select
-              value={step2.selectedColumn}
-              label="Columna de roles *"
-              onChange={(e) => handleColumnChange(e.target.value)}
-            >
-              {headerOptions.map((opt) => (
-                <MenuItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+        <SectionCard>
+          <SectionHeader>Columna de roles</SectionHeader>
+          <Box sx={{ p: 3 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Columna de roles *</InputLabel>
+              <Select
+                value={step2.selectedColumn}
+                label="Columna de roles *"
+                onChange={(e) => handleColumnChange(e.target.value)}
+                sx={{ borderRadius: '10px' }}
+              >
+                {headerOptions.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+        </SectionCard>
+      )}
+
+      {effectiveSource && step2.selectedColumn === NONE_VALUE && (
+        <Box
+          sx={{
+            border: '1px dashed',
+            borderColor: 'divider',
+            borderRadius: '12px',
+            p: 4,
+            textAlign: 'center',
+            mb: 3,
+          }}
+        >
+          <Typography sx={{ fontSize: '14px', color: '#6B7280' }}>
+            Seleccioná una columna para ver el catálogo de roles
+          </Typography>
         </Box>
       )}
 
@@ -185,63 +257,63 @@ export function Step2Panel() {
             hasErrors={summary.hasErrors}
             label="roles"
           />
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             {step2.catalog.map((role) => (
-              <Card
+              <Box
                 key={role.id}
-                variant="outlined"
-                sx={{ borderRadius: 2, borderColor: role.valid ? 'divider' : 'error.light' }}
+                sx={{
+                  border: '1px solid',
+                  borderColor: role.valid ? 'divider' : 'error.light',
+                  borderRadius: '10px',
+                  px: 2,
+                  py: 1.5,
+                  bgcolor: role.valid ? 'background.paper' : '#FFF5F5',
+                }}
               >
-                <CardContent sx={{ py: '8px !important', px: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-                    <Box sx={{ flex: 1, minWidth: 200 }}>
-                      <CharCounterInput
-                        value={role.name}
-                        onChange={(v) => handleRoleChange(role.id, { name: v })}
-                        maxLength={40}
-                        label="Nombre del rol"
-                        error={!role.valid}
-                      />
-                    </Box>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          size="small"
-                          checked={role.hasReports}
-                          onChange={(e) => handleRoleChange(role.id, { hasReports: e.target.checked })}
-                        />
-                      }
-                      label={<Typography variant="body2">Tiene reportes</Typography>}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                  <Box sx={{ flex: 1, minWidth: 200 }}>
+                    <CharCounterInput
+                      value={role.name}
+                      onChange={(v) => handleRoleChange(role.id, { name: v })}
+                      maxLength={40}
+                      label="Nombre del rol"
+                      error={!role.valid}
                     />
-                    {!role.valid && (
-                      <Chip
-                        label={role.errors.join(' · ')}
-                        size="small"
-                        color="error"
-                        sx={{ maxWidth: 300 }}
-                      />
-                    )}
                   </Box>
-                </CardContent>
-              </Card>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        size="small"
+                        checked={role.hasReports}
+                        onChange={(e) => handleRoleChange(role.id, { hasReports: e.target.checked })}
+                        sx={{ color: 'primary.main' }}
+                      />
+                    }
+                    label={
+                      <Typography sx={{ fontSize: '13px', color: '#374151' }}>
+                        Tiene reportes
+                      </Typography>
+                    }
+                  />
+                  {!role.valid && (
+                    <Chip
+                      label={role.errors.join(' · ')}
+                      size="small"
+                      sx={{
+                        height: 22,
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        bgcolor: 'error.main',
+                        color: '#fff',
+                        borderRadius: '999px',
+                        maxWidth: 300,
+                      }}
+                    />
+                  )}
+                </Box>
+              </Box>
             ))}
           </Box>
-        </Box>
-      )}
-
-      {effectiveSource && step2.selectedColumn === NONE_VALUE && (
-        <Box
-          sx={{
-            border: '1px dashed',
-            borderColor: 'divider',
-            borderRadius: 3,
-            p: 4,
-            textAlign: 'center',
-          }}
-        >
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            Seleccioná una columna para ver el catálogo de roles
-          </Typography>
         </Box>
       )}
     </Box>

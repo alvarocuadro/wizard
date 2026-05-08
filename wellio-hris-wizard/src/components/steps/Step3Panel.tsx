@@ -6,10 +6,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Card,
-  CardContent,
-  Alert,
 } from '@mui/material';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { ValidationSummaryBanner } from '../ui/ValidationSummaryBanner';
 import { SourceFileChoice } from './SourceFileChoice';
 import { TeamHierarchyBuilder } from './TeamHierarchyBuilder';
@@ -20,6 +18,62 @@ import { useTeamsCatalog } from '../../hooks/useTeamsCatalog';
 import { parseSheet } from '../../utils/workbookCache';
 import { NONE_VALUE } from '../../utils/constants';
 import type { FileParseResult, TeamCatalogItem } from '../../utils/types';
+
+function SectionCard({ children, sx = {} }: { children: React.ReactNode; sx?: object }) {
+  return (
+    <Box
+      sx={{
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: '12px',
+        bgcolor: 'background.paper',
+        overflow: 'hidden',
+        mb: 3,
+        ...sx,
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
+
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <Box sx={{ px: 3, py: 2, borderBottom: '1px solid', borderColor: 'divider', bgcolor: '#FAFAFA' }}>
+      <Typography sx={{ fontWeight: 700, fontSize: '14px', color: '#374151' }}>
+        {children}
+      </Typography>
+    </Box>
+  );
+}
+
+function StepHeader({ step, title, subtitle }: { step: number; title: string; subtitle: string }) {
+  return (
+    <Box sx={{ mb: 4 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
+        <Box
+          sx={{
+            width: 28, height: 28,
+            borderRadius: '8px',
+            bgcolor: 'primary.light',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <Typography sx={{ fontSize: '12px', fontWeight: 800, color: 'primary.main', lineHeight: 1 }}>
+            {step}
+          </Typography>
+        </Box>
+        <Typography variant="h6" sx={{ fontWeight: 700, color: '#111827' }}>
+          {title}
+        </Typography>
+      </Box>
+      <Typography variant="body2" sx={{ color: '#6B7280', pl: '42px' }}>
+        {subtitle}
+      </Typography>
+    </Box>
+  );
+}
 
 export function Step3Panel() {
   const { state, dispatch } = useWizardContext();
@@ -114,7 +168,7 @@ export function Step3Panel() {
 
   const summary = teamsCatalog.summary(step3.catalog);
 
-  const noneOption = { value: NONE_VALUE, label: '--- Selecciona una columna ---' };
+  const noneOption = { value: NONE_VALUE, label: '— Seleccioná una columna —' };
   const headerOptions = effectiveSource
     ? [
         noneOption,
@@ -127,19 +181,15 @@ export function Step3Panel() {
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
-        Paso 3: Equipos
-      </Typography>
-      <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
-        Seleccioná la columna de equipos y armá la jerarquía arrastrando los nodos del árbol.
-      </Typography>
+      <StepHeader
+        step={3}
+        title="Equipos"
+        subtitle="Seleccioná la columna de equipos y armá la jerarquía arrastrando los nodos del árbol."
+      />
 
-      {/* Source file */}
-      <Card variant="outlined" sx={{ mb: 3, borderRadius: 3 }}>
-        <CardContent>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
-            Archivo fuente
-          </Typography>
+      <SectionCard>
+        <SectionHeader>Archivo fuente</SectionHeader>
+        <Box sx={{ p: 3 }}>
           <SourceFileChoice
             step1FileName={step1.source?.fileName ?? ''}
             mode={step3.sourceData.mode}
@@ -156,47 +206,49 @@ export function Step3Panel() {
               onChange={handleSheetChange}
             />
           )}
-        </CardContent>
-      </Card>
-
-      {/* Column selector */}
-      {effectiveSource && (
-        <Box sx={{ mb: 3 }}>
-          <FormControl fullWidth size="small">
-            <InputLabel>Columna de equipos *</InputLabel>
-            <Select
-              value={step3.selectedColumn}
-              label="Columna de equipos *"
-              onChange={(event) => handleColumnChange(event.target.value)}
-            >
-              {headerOptions.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
         </Box>
+      </SectionCard>
+
+      {effectiveSource && (
+        <SectionCard>
+          <SectionHeader>Columna de equipos</SectionHeader>
+          <Box sx={{ p: 3 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Columna de equipos *</InputLabel>
+              <Select
+                value={step3.selectedColumn}
+                label="Columna de equipos *"
+                onChange={(event) => handleColumnChange(event.target.value)}
+                sx={{ borderRadius: '10px' }}
+              >
+                {headerOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+        </SectionCard>
       )}
 
-      {/* Empty state */}
       {effectiveSource && step3.selectedColumn === NONE_VALUE && (
         <Box
           sx={{
             border: '1px dashed',
             borderColor: 'divider',
-            borderRadius: 3,
+            borderRadius: '12px',
             p: 4,
             textAlign: 'center',
+            mb: 3,
           }}
         >
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          <Typography sx={{ fontSize: '14px', color: '#6B7280' }}>
             Seleccioná una columna para ver el catálogo de equipos
           </Typography>
         </Box>
       )}
 
-      {/* Catalog: validation banner + loop alert + DnD tree */}
       {step3.catalog.length > 0 && (
         <Box>
           <ValidationSummaryBanner
@@ -208,15 +260,36 @@ export function Step3Panel() {
           />
 
           {summary.hasLoop && (
-            <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-              Se detectó una dependencia circular en la jerarquía. Revisá los equipos padre asignados.
-            </Alert>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+                px: 2.5,
+                py: 1.5,
+                mb: 2,
+                borderRadius: '10px',
+                border: '1px solid',
+                borderColor: 'error.main',
+                bgcolor: '#FEF2F2',
+              }}
+            >
+              <WarningAmberIcon sx={{ fontSize: 18, color: 'error.main', flexShrink: 0 }} />
+              <Typography sx={{ fontSize: '13px', fontWeight: 500, color: 'error.dark' }}>
+                Se detectó una dependencia circular en la jerarquía. Revisá los equipos padre asignados.
+              </Typography>
+            </Box>
           )}
 
-          <TeamHierarchyBuilder
-            catalog={step3.catalog}
-            onTeamChange={handleTeamChange}
-          />
+          <SectionCard sx={{ mb: 0 }}>
+            <SectionHeader>Jerarquía de equipos</SectionHeader>
+            <Box sx={{ p: 3 }}>
+              <TeamHierarchyBuilder
+                catalog={step3.catalog}
+                onTeamChange={handleTeamChange}
+              />
+            </Box>
+          </SectionCard>
         </Box>
       )}
     </Box>

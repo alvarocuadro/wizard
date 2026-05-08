@@ -42,10 +42,7 @@ export function WizardHeader() {
 
   function handleSaveDraft() {
     try {
-      const payload: StoredDraft = {
-        savedAt: new Date().toISOString(),
-        state,
-      };
+      const payload: StoredDraft = { savedAt: new Date().toISOString(), state };
       window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(payload));
       setHasDraft(true);
       setStatus('Borrador guardado. Podes seguir mas tarde.');
@@ -65,67 +62,98 @@ export function WizardHeader() {
     setStatus('Borrador cargado.');
   }
 
+  const draftBtnSx = {
+    fontSize: '12px',
+    fontWeight: 500,
+    textTransform: 'none',
+    color: '#6B7280',
+    '&:hover': { color: 'primary.main', bgcolor: 'transparent' },
+  } as const;
+
   return (
-    <Box sx={{ textAlign: 'center', mb: 4, position: 'relative' }}>
+    <Box sx={{ mb: 5 }}>
+      {/* Brand + draft controls */}
       <Box
         sx={{
-          position: 'absolute',
-          right: 0,
-          top: 0,
           display: 'flex',
-          gap: 1,
-          flexWrap: 'wrap',
-          justifyContent: 'flex-end',
-          maxWidth: { xs: '100%', md: 420 },
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: 2,
+          mb: 1,
         }}
       >
-        {hasDraft && (
+        {/* Logo mark + title */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box
+            sx={{
+              width: 40,
+              height: 40,
+              borderRadius: '10px',
+              bgcolor: 'primary.main',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <Typography sx={{ fontSize: '18px', fontWeight: 900, color: '#fff', lineHeight: 1 }}>
+              W
+            </Typography>
+          </Box>
+          <Box>
+            <Typography
+              variant="h5"
+              sx={{ fontWeight: 800, color: 'primary.main', lineHeight: 1.1 }}
+            >
+              HRIS Wizard
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#6B7280' }}>
+              Configuración inicial de la estructura organizacional
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Draft actions */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          {hasDraft && (
+            <Button
+              size="small"
+              variant="text"
+              startIcon={<RestoreIcon sx={{ fontSize: '14px !important' }} />}
+              onClick={handleLoadDraft}
+              sx={draftBtnSx}
+            >
+              Cargar borrador
+            </Button>
+          )}
           <Button
             size="small"
             variant="text"
-            color="inherit"
-            startIcon={<RestoreIcon />}
-            onClick={handleLoadDraft}
-            sx={{ color: 'text.secondary' }}
+            startIcon={<SaveOutlinedIcon sx={{ fontSize: '14px !important' }} />}
+            onClick={handleSaveDraft}
+            sx={draftBtnSx}
           >
-            Cargar borrador
+            Guardar borrador
           </Button>
-        )}
-        <Button
-          size="small"
-          variant="text"
-          color="inherit"
-          startIcon={<SaveOutlinedIcon />}
-          onClick={handleSaveDraft}
-          sx={{ color: 'text.secondary' }}
-        >
-          Guardar borrador y seguir mas tarde
-        </Button>
-        <Button
-          size="small"
-          variant="text"
-          color="inherit"
-          startIcon={<RestartAltIcon />}
-          onClick={() => window.location.reload()}
-          sx={{ color: 'text.disabled' }}
-        >
-          Reiniciar
-        </Button>
+          <Button
+            size="small"
+            variant="text"
+            startIcon={<RestartAltIcon sx={{ fontSize: '14px !important' }} />}
+            onClick={() => window.location.reload()}
+            sx={{ ...draftBtnSx, color: '#9CA3AF' }}
+          >
+            Reiniciar
+          </Button>
+        </Box>
       </Box>
 
-      <Typography variant="h4" gutterBottom sx={{ fontWeight: 800, color: 'primary.main' }}>
-        HRIS Wizard
-      </Typography>
-      <Typography variant="subtitle1" sx={{ color: 'text.secondary' }}>
-        Configuracion inicial de la estructura organizacional
-      </Typography>
-
       {(status || savedAtLabel) && (
-        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-          <Alert severity="info" sx={{ borderRadius: 2, maxWidth: 520, width: '100%', textAlign: 'left' }}>
-            {status ?? `Borrador disponible. Ultimo guardado: ${savedAtLabel}.`}
-          </Alert>
-        </Box>
+        <Alert
+          severity="info"
+          sx={{ borderRadius: '10px', mt: 2, fontSize: '13px' }}
+        >
+          {status ?? `Borrador disponible. Último guardado: ${savedAtLabel}.`}
+        </Alert>
       )}
     </Box>
   );

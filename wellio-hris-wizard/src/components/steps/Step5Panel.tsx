@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
   FormControl,
   InputLabel,
   Select,
@@ -14,6 +12,7 @@ import {
   OutlinedInput,
 } from '@mui/material';
 import DataObjectIcon from '@mui/icons-material/DataObject';
+import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import { ValidationSummaryBanner } from '../ui/ValidationSummaryBanner';
 import { JsonPreviewModal } from '../ui/JsonPreviewModal';
 import { useWizardContext } from '../../context/WizardContext';
@@ -25,6 +24,62 @@ import type { LeaderAssignment } from '../../utils/types';
 const ROLE_ERROR_PREFIX = 'Rol lider';
 const PERSON_ERROR_PREFIX = 'Persona lider';
 const EMPTY_OPTION_LABEL = '--- Selecciona ---';
+
+function SectionCard({ children, sx = {} }: { children: React.ReactNode; sx?: object }) {
+  return (
+    <Box
+      sx={{
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: '12px',
+        bgcolor: 'background.paper',
+        overflow: 'hidden',
+        mb: 3,
+        ...sx,
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
+
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <Box sx={{ px: 3, py: 2, borderBottom: '1px solid', borderColor: 'divider', bgcolor: '#FAFAFA' }}>
+      <Typography sx={{ fontWeight: 700, fontSize: '14px', color: '#374151' }}>
+        {children}
+      </Typography>
+    </Box>
+  );
+}
+
+function StepHeader({ step, title, subtitle }: { step: number; title: string; subtitle: string }) {
+  return (
+    <Box sx={{ mb: 4 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
+        <Box
+          sx={{
+            width: 28, height: 28,
+            borderRadius: '8px',
+            bgcolor: 'primary.light',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <Typography sx={{ fontSize: '12px', fontWeight: 800, color: 'primary.main', lineHeight: 1 }}>
+            {step}
+          </Typography>
+        </Box>
+        <Typography variant="h6" sx={{ fontWeight: 700, color: '#111827' }}>
+          {title}
+        </Typography>
+      </Box>
+      <Typography variant="body2" sx={{ color: '#6B7280', pl: '42px' }}>
+        {subtitle}
+      </Typography>
+    </Box>
+  );
+}
 
 export function Step5Panel() {
   const { state, dispatch } = useWizardContext();
@@ -56,32 +111,31 @@ export function Step5Panel() {
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
-        Paso 5: Asignacion de lideres
-      </Typography>
-      <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
-        Para cada equipo con liderazgo propio, selecciona el rol y define si lideran una o varias personas, o todo el rol.
-      </Typography>
+      <StepHeader
+        step={5}
+        title="Asignación de líderes"
+        subtitle="Para cada equipo con liderazgo propio, seleccioná el rol y definí si lideran una o varias personas, o todo el rol."
+      />
 
       {ownTeamsCount === 0 && (
         <Box
           sx={{
             border: '1px dashed',
             borderColor: 'divider',
-            borderRadius: 3,
+            borderRadius: '12px',
             p: 4,
             textAlign: 'center',
             mb: 3,
           }}
         >
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          <Typography sx={{ fontSize: '14px', color: '#6B7280' }}>
             No hay equipos con liderazgo propio configurados en el Paso 3.
           </Typography>
         </Box>
       )}
 
       {step5.assignments.length > 0 && (
-        <Box>
+        <Box sx={{ mb: 3 }}>
           <ValidationSummaryBanner
             total={summary.total}
             valid={summary.valid}
@@ -90,7 +144,7 @@ export function Step5Panel() {
             label="equipos"
           />
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 4 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {step5.assignments.map((assignment) => {
               const uniqueRoles = [
                 ...new Set(assignment.candidates.map((candidate) => candidate.role).filter(Boolean)),
@@ -113,39 +167,44 @@ export function Step5Panel() {
               const personError = assignment.errors.some((error) => error.includes(PERSON_ERROR_PREFIX));
 
               return (
-                <Card
-                  key={assignment.teamId}
-                  variant="outlined"
-                  sx={{
-                    borderRadius: 3,
-                    borderColor: assignment.valid ? 'divider' : 'error.light',
-                  }}
-                >
-                  <CardContent>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        justifyContent: 'space-between',
-                        mb: 2,
-                        flexWrap: 'wrap',
-                        gap: 1,
-                      }}
-                    >
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                        {assignment.teamName}
-                      </Typography>
-                      {!assignment.valid && (
-                        <Chip
-                          label={`${assignment.errors.length} error${assignment.errors.length > 1 ? 'es' : ''}`}
-                          size="small"
-                          color="error"
-                        />
-                      )}
-                    </Box>
+                <SectionCard key={assignment.teamId} sx={{ mb: 0 }}>
+                  <Box
+                    sx={{
+                      px: 3,
+                      py: 2,
+                      borderBottom: '1px solid',
+                      borderColor: 'divider',
+                      bgcolor: '#FAFAFA',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 1,
+                    }}
+                  >
+                    <Typography sx={{ fontWeight: 700, fontSize: '14px', color: '#374151' }}>
+                      {assignment.teamName}
+                    </Typography>
+                    {assignment.valid ? (
+                      <CheckCircleOutlinedIcon sx={{ fontSize: 18, color: 'success.main' }} />
+                    ) : (
+                      <Chip
+                        label={`${assignment.errors.length} error${assignment.errors.length > 1 ? 'es' : ''}`}
+                        size="small"
+                        sx={{
+                          height: 22,
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          bgcolor: 'error.main',
+                          color: '#fff',
+                          borderRadius: '999px',
+                        }}
+                      />
+                    )}
+                  </Box>
 
+                  <Box sx={{ p: 3 }}>
                     {assignment.candidates.length === 0 ? (
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      <Typography sx={{ fontSize: '13px', color: '#6B7280' }}>
                         Este equipo no tiene asignaciones en el Paso 4.
                       </Typography>
                     ) : (
@@ -158,6 +217,7 @@ export function Step5Panel() {
                             onChange={(event) =>
                               handleLeaderChange(assignment.teamId, { leaderRole: event.target.value })
                             }
+                            sx={{ borderRadius: '10px' }}
                           >
                             <MenuItem value="">{EMPTY_OPTION_LABEL}</MenuItem>
                             {uniqueRoles.map((role) => (
@@ -180,8 +240,9 @@ export function Step5Panel() {
                                 leaderSelectionMode: event.target.value as LeaderAssignment['leaderSelectionMode'],
                               })
                             }
+                            sx={{ borderRadius: '10px' }}
                           >
-                            <MenuItem value="specific">Miembros especificos</MenuItem>
+                            <MenuItem value="specific">Miembros específicos</MenuItem>
                             <MenuItem value="all">Todos los miembros del rol</MenuItem>
                           </Select>
                           {hasSingleCandidate && (
@@ -214,6 +275,7 @@ export function Step5Panel() {
                                     : event.target.value,
                               })
                             }
+                            sx={{ borderRadius: '10px' }}
                           >
                             {personsForRole.map((person) => (
                               <MenuItem key={person} value={person}>{person}</MenuItem>
@@ -221,7 +283,7 @@ export function Step5Panel() {
                           </Select>
                           {isAllMode && (
                             <FormHelperText>
-                              Se marcaran como lider todas las personas de este rol dentro del equipo.
+                              Se marcarán como lider todas las personas de este rol dentro del equipo.
                             </FormHelperText>
                           )}
                           {hasSingleCandidate && (
@@ -234,16 +296,16 @@ export function Step5Panel() {
                     )}
 
                     {!assignment.valid && (
-                      <Box sx={{ mt: 1 }}>
+                      <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
                         {assignment.errors.map((error) => (
-                          <Typography key={error} variant="caption" sx={{ color: 'error.main', display: 'block' }}>
-                            - {error}
+                          <Typography key={error} sx={{ fontSize: '12px', color: 'error.main', display: 'block' }}>
+                            • {error}
                           </Typography>
                         ))}
                       </Box>
                     )}
-                  </CardContent>
-                </Card>
+                  </Box>
+                </SectionCard>
               );
             })}
           </Box>
@@ -253,7 +315,7 @@ export function Step5Panel() {
       <Box
         sx={{
           p: 3,
-          borderRadius: 3,
+          borderRadius: '12px',
           bgcolor: 'primary.light',
           border: '1px solid',
           borderColor: 'primary.main',
@@ -265,11 +327,11 @@ export function Step5Panel() {
         }}
       >
         <Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'primary.dark' }}>
+          <Typography sx={{ fontWeight: 700, fontSize: '15px', color: 'primary.dark', mb: 0.25 }}>
             Estructura lista para exportar
           </Typography>
-          <Typography variant="body2" sx={{ color: 'primary.dark' }}>
-            {step3.catalog.length} equipos · {step4.catalog.filter((assignment) => assignment.valid).length} asignaciones validas
+          <Typography sx={{ fontSize: '13px', color: 'primary.dark' }}>
+            {step3.catalog.length} equipos · {step4.catalog.filter((a) => a.valid).length} asignaciones válidas
           </Typography>
         </Box>
         <Button
@@ -278,6 +340,14 @@ export function Step5Panel() {
           startIcon={<DataObjectIcon />}
           onClick={handleGenerateJson}
           disabled={summary.hasErrors && step5.assignments.length > 0}
+          sx={{
+            borderRadius: '10px',
+            fontWeight: 700,
+            fontSize: '14px',
+            textTransform: 'none',
+            boxShadow: '0 4px 12px rgba(124,58,237,0.25)',
+            '&:hover': { boxShadow: '0 4px 16px rgba(124,58,237,0.35)' },
+          }}
         >
           Generar JSON
         </Button>

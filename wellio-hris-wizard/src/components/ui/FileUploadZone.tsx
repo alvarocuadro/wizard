@@ -49,17 +49,17 @@ export function FileUploadZone({
       onDrop={handleDrop}
       sx={{
         border: '2px dashed',
-        borderColor: dragging ? 'primary.main' : error ? 'error.main' : 'divider',
-        borderRadius: 3,
+        borderColor: dragging ? 'primary.main' : error ? 'error.main' : '#D1D5DB',
+        borderRadius: '12px',
         p: 5,
         textAlign: 'center',
         cursor: loading ? 'default' : 'pointer',
-        transition: 'all 0.2s',
+        transition: 'all 200ms ease',
         outline: 'none',
-        bgcolor: dragging ? 'action.hover' : 'background.paper',
+        bgcolor: dragging ? 'primary.light' : error ? '#FEE2E2' : '#FAFAFA',
         '&:hover': {
-          borderColor: loading ? 'divider' : 'primary.main',
-          bgcolor: loading ? 'background.paper' : 'action.hover',
+          borderColor: loading ? '#D1D5DB' : 'primary.main',
+          bgcolor: loading ? '#FAFAFA' : 'primary.light',
         },
         '&:focus-visible': {
           outline: '2px solid',
@@ -75,19 +75,44 @@ export function FileUploadZone({
         style={{ display: 'none' }}
         onChange={handleChange}
       />
+
       {loading ? (
-        <CircularProgress size={36} />
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
+          <CircularProgress size={32} color="primary" />
+          <Typography variant="caption" sx={{ color: '#6B7280' }}>
+            Procesando archivo…
+          </Typography>
+        </Box>
       ) : (
         <>
-          <UploadFileIcon sx={{ fontSize: 44, color: 'primary.main', mb: 1 }} />
-          <Typography variant="body1" gutterBottom sx={{ fontWeight: 600 }}>
+          <Box
+            sx={{
+              width: 52,
+              height: 52,
+              borderRadius: '12px',
+              bgcolor: 'primary.light',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mx: 'auto',
+              mb: 2,
+            }}
+          >
+            <UploadFileIcon sx={{ fontSize: 28, color: 'primary.main' }} />
+          </Box>
+
+          <Typography sx={{ fontWeight: 600, fontSize: '14px', color: '#111827', mb: 0.5 }}>
             {label}
           </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+          <Typography variant="caption" sx={{ color: '#6B7280' }}>
             Formatos aceptados: .xlsx, .xls, .csv
           </Typography>
+
           {error && (
-            <Typography variant="caption" sx={{ color: 'error.main', display: 'block', mt: 1 }}>
+            <Typography
+              variant="caption"
+              sx={{ color: 'error.main', display: 'block', mt: 1.5, fontWeight: 500 }}
+            >
               {error}
             </Typography>
           )}

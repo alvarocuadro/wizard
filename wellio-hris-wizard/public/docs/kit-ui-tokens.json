@@ -1,0 +1,490 @@
+{
+  "brand": {
+    "name": "Wellio",
+    "version": "1.0"
+  },
+  "typography": {
+    "fonts": {
+      "primary": "Inter, sans-serif"
+    },
+    "variants": {
+      "h1": {
+        "name": "Encabezado 1",
+        "fontSize": "96px",
+        "fontWeight": 600,
+        "lineHeight": 1.2
+      },
+      "h2": {
+        "name": "Encabezado 2",
+        "fontSize": "60px",
+        "fontWeight": 600,
+        "lineHeight": 1.2
+      },
+      "h3": {
+        "name": "Encabezado 3",
+        "fontSize": "48px",
+        "fontWeight": 600,
+        "lineHeight": 1.2
+      },
+      "h4": {
+        "name": "Encabezado 4",
+        "fontSize": "34px",
+        "fontWeight": 600,
+        "lineHeight": 1.2
+      },
+      "h5": {
+        "name": "Encabezado 5",
+        "fontSize": "24px",
+        "fontWeight": 600,
+        "lineHeight": 1.2
+      },
+      "h6": {
+        "name": "Encabezado 6",
+        "fontSize": "20px",
+        "fontWeight": 600,
+        "lineHeight": 1.2
+      },
+      "subtitle1": {
+        "name": "Subtítulo 1",
+        "fontSize": "18px",
+        "fontWeight": 500,
+        "lineHeight": 1.4
+      },
+      "subtitle2": {
+        "name": "Subtítulo 2",
+        "fontSize": "16px",
+        "fontWeight": 500,
+        "lineHeight": 1.4
+      },
+      "subtitle3": {
+        "name": "Subtítulo 3",
+        "fontSize": "14px",
+        "fontWeight": 500,
+        "lineHeight": 1.4
+      },
+      "subtitle4": {
+        "name": "Subtítulo 4",
+        "fontSize": "12px",
+        "fontWeight": 500,
+        "lineHeight": 1.4
+      },
+      "bodyXL": {
+        "name": "Cuerpo extra grande",
+        "fontSize": "20px",
+        "fontWeight": 400,
+        "lineHeight": 1.5
+      },
+      "bodyL": {
+        "name": "Cuerpo grande",
+        "fontSize": "18px",
+        "fontWeight": 400,
+        "lineHeight": 1.5
+      },
+      "bodyM": {
+        "name": "Cuerpo mediano",
+        "fontSize": "16px",
+        "fontWeight": 400,
+        "lineHeight": 1.5
+      },
+      "bodyS": {
+        "name": "Cuerpo pequeño",
+        "fontSize": "14px",
+        "fontWeight": 400,
+        "lineHeight": 1.5
+      },
+      "caption": {
+        "name": "Leyenda",
+        "fontSize": "12px",
+        "fontWeight": 400,
+        "lineHeight": 1.5
+      },
+      "micro": {
+        "name": "Micro",
+        "fontSize": "10px",
+        "fontWeight": 400,
+        "lineHeight": 1.4
+      },
+      "microText": {
+        "name": "Micro texto",
+        "fontSize": "10px",
+        "fontWeight": 400,
+        "lineHeight": 1.4
+      },
+      "textXS": {
+        "name": "Texto extra pequeño",
+        "fontSize": "8px",
+        "fontWeight": 400,
+        "lineHeight": 1.4
+      },
+      "linkL": {
+        "name": "Enlace grande",
+        "fontSize": "20px",
+        "fontWeight": 500,
+        "lineHeight": 1.5
+      },
+      "linkM": {
+        "name": "Enlace mediano",
+        "fontSize": "16px",
+        "fontWeight": 500,
+        "lineHeight": 1.5
+      },
+      "linkS": {
+        "name": "Enlace pequeño",
+        "fontSize": "14px",
+        "fontWeight": 500,
+        "lineHeight": 1.5
+      },
+      "linkXS": {
+        "name": "Enlace extra pequeño",
+        "fontSize": "12px",
+        "fontWeight": 500,
+        "lineHeight": 1.5
+      },
+      "linkMini": {
+        "name": "Enlace mini",
+        "fontSize": "10px",
+        "fontWeight": 500,
+        "lineHeight": 1.4
+      }
+    }
+  },
+  "colors": {
+    "primary": {
+      "name": "Primario",
+      "light": "#E8DFFF",
+      "main": "#7C3AED",
+      "dark": "#5B21B6",
+      "contrast": "#FFFFFF"
+    },
+    "secondary": {
+      "name": "Secundario",
+      "light": "#FED7AA",
+      "main": "#FB923C",
+      "dark": "#D97706",
+      "contrast": "#FFFFFF"
+    },
+    "success": {
+      "name": "Éxito",
+      "light": "#D1FAE5",
+      "main": "#10B981",
+      "dark": "#047857",
+      "contrast": "#FFFFFF"
+    },
+    "error": {
+      "name": "Error",
+      "light": "#FEE2E2",
+      "main": "#EF4444",
+      "dark": "#DC2626",
+      "contrast": "#FFFFFF"
+    },
+    "warning": {
+      "name": "Advertencia",
+      "light": "#FEF3C7",
+      "main": "#F59E0B",
+      "dark": "#D97706",
+      "contrast": "#FFFFFF"
+    },
+    "info": {
+      "name": "Información",
+      "light": "#DBEAFE",
+      "main": "#3B82F6",
+      "dark": "#1D4ED8",
+      "contrast": "#FFFFFF"
+    },
+    "neutral": {
+      "name": "Neutro",
+      "light": "#F3F4F6",
+      "main": "#D1D5DB",
+      "dark": "#6B7280",
+      "contrast": "#000000"
+    },
+    "background": "#FFFFFF",
+    "surface": "#F9FAFB",
+    "border": "#E5E7EB"
+  },
+  "components": {
+    "button": {
+      "variants": {
+        "contained": {
+          "name": "Botón contenido",
+          "backgroundColor": "$colors.primary.main",
+          "color": "$colors.primary.contrast",
+          "padding": "12px 24px",
+          "borderRadius": "8px",
+          "border": "none",
+          "fontWeight": 600
+        },
+        "outlined": {
+          "name": "Botón delineado",
+          "backgroundColor": "transparent",
+          "color": "$colors.primary.main",
+          "padding": "12px 24px",
+          "borderRadius": "8px",
+          "border": "2px solid $colors.primary.main",
+          "fontWeight": 600
+        },
+        "text": {
+          "name": "Botón de texto",
+          "backgroundColor": "transparent",
+          "color": "$colors.primary.main",
+          "padding": "12px 24px",
+          "borderRadius": "8px",
+          "border": "none",
+          "fontWeight": 600
+        },
+        "disabled": {
+          "name": "Botón deshabilitado",
+          "backgroundColor": "#D1D5DB",
+          "color": "#9CA3AF",
+          "opacity": 0.5,
+          "cursor": "not-allowed"
+        }
+      },
+      "sizes": {
+        "large": {
+          "padding": "16px 32px",
+          "fontSize": "16px"
+        },
+        "medium": {
+          "padding": "12px 24px",
+          "fontSize": "14px"
+        },
+        "small": {
+          "padding": "8px 16px",
+          "fontSize": "12px"
+        },
+        "extraSmall": {
+          "padding": "6px 12px",
+          "fontSize": "11px"
+        },
+        "mini": {
+          "padding": "4px 8px",
+          "fontSize": "10px"
+        }
+      }
+    },
+    "input": {
+      "variants": {
+        "default": {
+          "name": "TextField por defecto",
+          "padding": "12px 16px",
+          "borderRadius": "8px",
+          "border": "1px solid $colors.border",
+          "backgroundColor": "$colors.background",
+          "fontSize": "14px"
+        },
+        "withIcon": {
+          "name": "Con icono",
+          "padding": "12px 16px 12px 40px",
+          "paddingLeft": "40px",
+          "backgroundPosition": "12px center"
+        },
+        "error": {
+          "name": "Estado de error",
+          "borderColor": "$colors.error.main",
+          "backgroundColor": "#FEF2F2"
+        },
+        "disabled": {
+          "name": "Deshabilitado",
+          "backgroundColor": "#F3F4F6",
+          "color": "#9CA3AF",
+          "cursor": "not-allowed",
+          "opacity": 0.6
+        }
+      }
+    },
+    "textarea": {
+      "name": "Área de texto",
+      "padding": "12px 16px",
+      "minHeight": "120px",
+      "borderRadius": "8px",
+      "border": "1px solid $colors.border",
+      "fontSize": "14px",
+      "resize": "vertical"
+    },
+    "select": {
+      "variants": {
+        "simple": {
+          "name": "Selector simple"
+        },
+        "autocomplete": {
+          "name": "Autocompletado"
+        },
+        "dropdown": {
+          "name": "Menú desplegable"
+        }
+      }
+    },
+    "checkbox": {
+      "name": "Casilla de verificación",
+      "size": "18px",
+      "borderRadius": "4px"
+    },
+    "chip": {
+      "variants": {
+        "primary": {
+          "name": "Chip primario",
+          "backgroundColor": "$colors.primary.light",
+          "color": "$colors.primary.main",
+          "padding": "6px 12px",
+          "borderRadius": "16px",
+          "fontSize": "12px"
+        },
+        "secondary": {
+          "name": "Chip secundario",
+          "backgroundColor": "$colors.secondary.light",
+          "color": "$colors.secondary.main",
+          "padding": "6px 12px",
+          "borderRadius": "16px",
+          "fontSize": "12px"
+        },
+        "neutral": {
+          "name": "Chip neutro",
+          "backgroundColor": "$colors.neutral.light",
+          "color": "$colors.neutral.dark",
+          "padding": "6px 12px",
+          "borderRadius": "16px",
+          "fontSize": "12px"
+        },
+        "success": {
+          "name": "Chip de éxito",
+          "backgroundColor": "$colors.success.light",
+          "color": "$colors.success.main",
+          "padding": "6px 12px",
+          "borderRadius": "16px",
+          "fontSize": "12px"
+        },
+        "error": {
+          "name": "Chip de error",
+          "backgroundColor": "$colors.error.light",
+          "color": "$colors.error.main",
+          "padding": "6px 12px",
+          "borderRadius": "16px",
+          "fontSize": "12px"
+        },
+        "warning": {
+          "name": "Chip de advertencia",
+          "backgroundColor": "$colors.warning.light",
+          "color": "$colors.warning.main",
+          "padding": "6px 12px",
+          "borderRadius": "16px",
+          "fontSize": "12px"
+        },
+        "info": {
+          "name": "Chip de información",
+          "backgroundColor": "$colors.info.light",
+          "color": "$colors.info.main",
+          "padding": "6px 12px",
+          "borderRadius": "16px",
+          "fontSize": "12px"
+        }
+      },
+      "sizes": {
+        "small": {
+          "padding": "4px 8px",
+          "fontSize": "10px"
+        },
+        "medium": {
+          "padding": "6px 12px",
+          "fontSize": "12px"
+        }
+      }
+    },
+    "alert": {
+      "variants": {
+        "error": {
+          "name": "Alerta Error",
+          "backgroundColor": "$colors.error.light",
+          "borderColor": "$colors.error.main",
+          "color": "$colors.error.dark",
+          "borderRadius": "8px",
+          "padding": "16px",
+          "border": "1px solid"
+        },
+        "warning": {
+          "name": "Alerta Advertencia",
+          "backgroundColor": "$colors.warning.light",
+          "borderColor": "$colors.warning.main",
+          "color": "$colors.warning.dark",
+          "borderRadius": "8px",
+          "padding": "16px",
+          "border": "1px solid"
+        },
+        "info": {
+          "name": "Alerta Información",
+          "backgroundColor": "$colors.info.light",
+          "borderColor": "$colors.info.main",
+          "color": "$colors.info.dark",
+          "borderRadius": "8px",
+          "padding": "16px",
+          "border": "1px solid"
+        },
+        "success": {
+          "name": "Alerta Éxito",
+          "backgroundColor": "$colors.success.light",
+          "borderColor": "$colors.success.main",
+          "color": "$colors.success.dark",
+          "borderRadius": "8px",
+          "padding": "16px",
+          "border": "1px solid"
+        }
+      }
+    },
+    "table": {
+      "name": "Tabla de datos",
+      "header": {
+        "backgroundColor": "$colors.primary.light",
+        "color": "$colors.primary.main",
+        "padding": "12px 16px",
+        "fontWeight": 600,
+        "borderBottom": "2px solid $colors.primary.main"
+      },
+      "row": {
+        "padding": "12px 16px",
+        "borderBottom": "1px solid $colors.border"
+      },
+      "hover": {
+        "backgroundColor": "$colors.surface"
+      }
+    }
+  },
+  "spacing": {
+    "xs": "4px",
+    "sm": "8px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "32px",
+    "2xl": "48px"
+  },
+  "borderRadius": {
+    "small": "4px",
+    "medium": "8px",
+    "large": "12px",
+    "full": "999px"
+  },
+  "shadows": {
+    "sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+    "md": "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+    "lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+    "xl": "0 20px 25px -5px rgba(0, 0, 0, 0.1)"
+  },
+  "transitions": {
+    "fast": "150ms ease-in-out",
+    "normal": "300ms ease-in-out",
+    "slow": "500ms ease-in-out"
+  },
+  "states": {
+    "hover": {
+      "opacity": 0.9,
+      "transform": "scale(1.02)"
+    },
+    "active": {
+      "opacity": 1,
+      "transform": "scale(0.98)"
+    },
+    "disabled": {
+      "opacity": 0.6,
+      "cursor": "not-allowed"
+    }
+  }
+}
