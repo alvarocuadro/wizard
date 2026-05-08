@@ -251,7 +251,20 @@ export function Step1Panel() {
               {source.rows.length} filas · {source.headers.length} columnas detectadas
             </Typography>
           </Box>
-          <Button size="small" variant="outlined" color="error" onClick={handleChangeFile}>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={handleChangeFile}
+            sx={{
+              color: 'warning.main',
+              borderColor: 'warning.main',
+              '&:hover': {
+                borderColor: 'warning.dark',
+                color: 'warning.dark',
+                backgroundColor: 'warning.lighter',
+              },
+            }}
+          >
             Cambiar archivo
           </Button>
         </CardContent>
