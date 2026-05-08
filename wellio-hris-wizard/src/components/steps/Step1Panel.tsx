@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import {
   Box,
   Typography,
@@ -16,6 +16,7 @@ import {
   TextField,
   Button,
   Divider,
+  Pagination,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -557,37 +558,79 @@ export function Step1Panel() {
                 </Typography>
               </AccordionSummary>
               <AccordionDetails>
-                {invalidResults.slice(0, 20).map((result) => {
-                  const index = validationResults.indexOf(result);
-                  return (
-                    <InvalidRowCard
-                      key={result.rowNumber}
-                      result={result}
-                      index={index}
-                      validateSingle={validateSingle}
-                      onUpdate={(targetIndex, normalized) =>
-                        dispatch({
-                          type: 'S1_UPDATE_ROW',
-                          payload: { index: targetIndex, normalized },
-                        })
-                      }
-                      onToggleOmit={(targetIndex) =>
-                        dispatch({ type: 'S1_TOGGLE_OMIT', payload: targetIndex })
-                      }
-                    />
-                  );
-                })}
-                {invalidResults.length > 20 && (
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    ... y {invalidResults.length - 20} filas mas con errores
-                  </Typography>
-                )}
+                <InvalidRowsList
+                  invalidResults={invalidResults}
+                  validationResults={validationResults}
+                  validateSingle={validateSingle}
+                  onUpdate={(targetIndex, normalized) =>
+                    dispatch({ type: 'S1_UPDATE_ROW', payload: { index: targetIndex, normalized } })
+                  }
+                  onToggleOmit={(targetIndex) =>
+                    dispatch({ type: 'S1_TOGGLE_OMIT', payload: targetIndex })
+                  }
+                />
               </AccordionDetails>
             </Accordion>
           )}
         </Box>
       )}
     </Box>
+  );
+}
+
+const PAGE_SIZE = 10;
+
+interface InvalidRowsListProps {
+  invalidResults: ValidationResult[];
+  validationResults: ValidationResult[];
+  validateSingle: (normalized: NormalizedRow) => string[];
+  onUpdate: (index: number, normalized: Record<string, string>) => void;
+  onToggleOmit: (index: number) => void;
+}
+
+function InvalidRowsList({
+  invalidResults,
+  validationResults,
+  validateSingle,
+  onUpdate,
+  onToggleOmit,
+}: InvalidRowsListProps) {
+  const [page, setPage] = useState(1);
+  const totalPages = Math.ceil(invalidResults.length / PAGE_SIZE);
+  const safePage = Math.min(page, Math.max(1, totalPages));
+  const start = (safePage - 1) * PAGE_SIZE;
+  const pageResults = invalidResults.slice(start, start + PAGE_SIZE);
+
+  return (
+    <>
+      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1.5 }}>
+        Mostrando {start + 1}–{Math.min(start + PAGE_SIZE, invalidResults.length)} de {invalidResults.length} filas con errores
+      </Typography>
+      {pageResults.map((result) => {
+        const index = validationResults.indexOf(result);
+        return (
+          <InvalidRowCard
+            key={result.rowNumber}
+            result={result}
+            index={index}
+            validateSingle={validateSingle}
+            onUpdate={onUpdate}
+            onToggleOmit={onToggleOmit}
+          />
+        );
+      })}
+      {totalPages > 1 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          <Pagination
+            count={totalPages}
+            page={safePage}
+            onChange={(_, value) => setPage(value)}
+            color="primary"
+            size="small"
+          />
+        </Box>
+      )}
+    </>
   );
 }
 

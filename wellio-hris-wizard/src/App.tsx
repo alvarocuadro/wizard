@@ -1,5 +1,5 @@
-import { type ReactElement } from 'react';
-import { ThemeProvider, CssBaseline, Paper } from '@mui/material';
+import { type ReactElement, useState, useCallback } from 'react';
+import { ThemeProvider, CssBaseline, Paper, Backdrop, CircularProgress, Typography, Box } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import 'dayjs/locale/es';
@@ -18,10 +18,22 @@ import { useWizardContext } from './context/WizardContext';
 import { useWizardNavigation } from './hooks/useWizardNavigation';
 import type { StepNumber } from './utils/types';
 
+const SAVE_DELAY_MS = 900;
+
 function WizardContent() {
   const { state } = useWizardContext();
   const { currentStep, canAdvance, blockReason, goNext, goBack, goTo, highestAvailableStep } =
     useWizardNavigation();
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleNext = useCallback(() => {
+    if (!canAdvance) return;
+    setIsSaving(true);
+    setTimeout(() => {
+      goNext();
+      setIsSaving(false);
+    }, SAVE_DELAY_MS);
+  }, [canAdvance, goNext]);
 
   const panels: Record<StepNumber, ReactElement> = {
     1: <Step1Panel />,
@@ -52,9 +64,24 @@ function WizardContent() {
           canAdvance={canAdvance}
           blockReason={blockReason}
           onBack={goBack}
-          onNext={goNext}
+          onNext={handleNext}
         />
       </Paper>
+
+      <Backdrop
+        open={isSaving}
+        sx={{ zIndex: (theme) => theme.zIndex.modal + 1, flexDirection: 'column', gap: 2 }}
+      >
+        <CircularProgress size={52} sx={{ color: '#fff' }} />
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="h6" sx={{ color: '#fff', fontWeight: 600 }}>
+            Guardando datos…
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.75)', mt: 0.5 }}>
+            Por favor esperá un momento
+          </Typography>
+        </Box>
+      </Backdrop>
     </WizardLayout>
   );
 }

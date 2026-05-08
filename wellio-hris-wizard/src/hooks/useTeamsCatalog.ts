@@ -92,7 +92,7 @@ export function useTeamsCatalog() {
         if (!value) return;
         const id = normalize(value);
         if (!map.has(id)) {
-          map.set(id, { id, name: value, isMain: false, leadershipMode: 'own', parentIds: [], errors: [], valid: true });
+          map.set(id, { id, name: value, isMain: false, leadershipMode: 'own', parentIds: [], placed: false, errors: [], valid: true });
         }
       });
 
@@ -101,7 +101,7 @@ export function useTeamsCatalog() {
         .sort((a, b) => a.name.localeCompare(b.name, 'es'))
         .map((item) => {
           const existing = prevById.get(item.id);
-          return existing ? { ...item, isMain: existing.isMain, leadershipMode: existing.leadershipMode, parentIds: existing.parentIds } : item;
+          return existing ? { ...item, isMain: existing.isMain, leadershipMode: existing.leadershipMode, parentIds: existing.parentIds, placed: existing.placed } : item;
         });
 
       return validateAll(catalog);

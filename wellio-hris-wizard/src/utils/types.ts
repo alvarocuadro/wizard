@@ -73,6 +73,7 @@ export interface TeamCatalogItem {
   isMain: boolean;
   leadershipMode: LeadershipMode;
   parentIds: string[];
+  placed: boolean;
   errors: string[];
   valid: boolean;
 }

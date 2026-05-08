@@ -8,17 +8,11 @@ import {
   MenuItem,
   Card,
   CardContent,
-  FormControlLabel,
-  Chip,
   Alert,
-  OutlinedInput,
-  Checkbox,
-  ListItemText,
-  Switch,
 } from '@mui/material';
-import ParkIcon from '@mui/icons-material/Park';
 import { ValidationSummaryBanner } from '../ui/ValidationSummaryBanner';
 import { SourceFileChoice } from './SourceFileChoice';
+import { TeamHierarchyBuilder } from './TeamHierarchyBuilder';
 import { useWizardContext } from '../../context/WizardContext';
 import { useColumnDetection } from '../../hooks/useColumnDetection';
 import { useTeamsCatalog } from '../../hooks/useTeamsCatalog';
@@ -104,7 +98,6 @@ export function Step3Panel() {
   }
 
   const summary = teamsCatalog.summary(step3.catalog);
-  const treeLines = teamsCatalog.getTreeLines(step3.catalog);
 
   const noneOption = { value: NONE_VALUE, label: '--- Selecciona una columna ---' };
   const headerOptions = effectiveSource
@@ -120,12 +113,13 @@ export function Step3Panel() {
   return (
     <Box>
       <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
-        Paso 3: Catalogo de equipos
+        Paso 3: Equipos
       </Typography>
       <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
-        Selecciona la columna de equipos y configura la jerarquia.
+        Seleccioná la columna de equipos y armá la jerarquía arrastrando los nodos del árbol.
       </Typography>
 
+      {/* Source file */}
       <Card variant="outlined" sx={{ mb: 3, borderRadius: 3 }}>
         <CardContent>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
@@ -143,6 +137,7 @@ export function Step3Panel() {
         </CardContent>
       </Card>
 
+      {/* Column selector */}
       {effectiveSource && (
         <Box sx={{ mb: 3 }}>
           <FormControl fullWidth size="small">
@@ -162,196 +157,7 @@ export function Step3Panel() {
         </Box>
       )}
 
-      {summary.hasLoop && (
-        <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-          Se detecto una dependencia circular en la jerarquia. Revisa los equipos padre asignados.
-        </Alert>
-      )}
-
-      {step3.catalog.length > 0 && (
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 1fr) 300px' },
-            gap: 3,
-            alignItems: 'start',
-          }}
-        >
-          <Box sx={{ minWidth: 0 }}>
-            <ValidationSummaryBanner
-              total={summary.total}
-              valid={summary.valid}
-              invalid={summary.invalid}
-              hasErrors={summary.hasErrors}
-              label="equipos"
-            />
-            <Typography variant="caption" sx={{ color: 'text.secondary', mb: 1, display: 'block' }}>
-              Switch = equipo principal · Liderazgo = propio o heredado · Padre = equipos padre
-            </Typography>
-
-            <Box
-              sx={{
-                maxHeight: { xs: 'none', lg: '68vh' },
-                overflowY: { xs: 'visible', lg: 'auto' },
-                pr: { xs: 0, lg: 1 },
-              }}
-            >
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {step3.catalog.map((team) => {
-                  const otherTeams = step3.catalog.filter((item) => item.id !== team.id);
-
-                  return (
-                    <Card
-                      key={team.id}
-                      variant="outlined"
-                      sx={{ borderRadius: 2, borderColor: team.valid ? 'divider' : 'error.light' }}
-                    >
-                      <CardContent sx={{ py: '8px !important', px: 2 }}>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'flex-start',
-                              justifyContent: 'space-between',
-                              flexWrap: 'wrap',
-                              gap: 1.5,
-                            }}
-                          >
-                            <Box sx={{ flex: 1, minWidth: 240 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                {team.name}
-                                {team.isMain && (
-                                  <Chip
-                                    label="Principal"
-                                    size="small"
-                                    color="primary"
-                                    sx={{ ml: 1 }}
-                                  />
-                                )}
-                              </Typography>
-                              <FormControlLabel
-                                sx={{ mt: 0.5, ml: 0 }}
-                                control={
-                                  <Switch
-                                    size="small"
-                                    checked={team.isMain}
-                                    onChange={(event) =>
-                                      handleTeamChange(team.id, { isMain: event.target.checked })
-                                    }
-                                  />
-                                }
-                                label="Es equipo principal"
-                              />
-                            </Box>
-
-                            <FormControl size="small" sx={{ minWidth: 160 }}>
-                              <InputLabel>Liderazgo</InputLabel>
-                              <Select
-                                value={team.leadershipMode}
-                                label="Liderazgo"
-                                onChange={(event) =>
-                                  handleTeamChange(team.id, {
-                                    leadershipMode: event.target.value as 'own' | 'inherit',
-                                  })
-                                }
-                              >
-                                <MenuItem value="own">Propio</MenuItem>
-                                <MenuItem value="inherit">Heredado</MenuItem>
-                              </Select>
-                            </FormControl>
-                          </Box>
-
-                          {!team.isMain && otherTeams.length > 0 && (
-                            <FormControl fullWidth size="small">
-                              <InputLabel>Equipos padre</InputLabel>
-                              <Select
-                                multiple
-                                value={team.parentIds}
-                                onChange={(event) =>
-                                  handleTeamChange(team.id, {
-                                    parentIds: event.target.value as string[],
-                                  })
-                                }
-                                input={<OutlinedInput label="Equipos padre" />}
-                                renderValue={(selected) =>
-                                  selected
-                                    .map((id) => step3.catalog.find((item) => item.id === id)?.name ?? id)
-                                    .join(', ')
-                                }
-                              >
-                                {otherTeams.map((item) => (
-                                  <MenuItem key={item.id} value={item.id}>
-                                    <Checkbox checked={team.parentIds.includes(item.id)} size="small" />
-                                    <ListItemText primary={item.name} />
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                            </FormControl>
-                          )}
-
-                          {!team.valid && (
-                            <Box>
-                              {team.errors.map((error) => (
-                                <Typography
-                                  key={error}
-                                  variant="caption"
-                                  sx={{ color: 'error.main', display: 'block' }}
-                                >
-                                  - {error}
-                                </Typography>
-                              ))}
-                            </Box>
-                          )}
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </Box>
-            </Box>
-          </Box>
-
-          {treeLines.length > 0 && (
-            <Box
-              sx={{
-                width: '100%',
-                position: { xs: 'static', lg: 'sticky' },
-                top: { xs: 'auto', lg: 24 },
-              }}
-            >
-              <Card variant="outlined" sx={{ borderRadius: 3 }}>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                    <ParkIcon fontSize="small" color="primary" />
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                      Vista de arbol
-                    </Typography>
-                  </Box>
-                  <Box
-                    component="pre"
-                    sx={{
-                      m: 0,
-                      p: 2,
-                      fontFamily: 'monospace',
-                      fontSize: '0.75rem',
-                      bgcolor: 'grey.50',
-                      borderRadius: 2,
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      overflowX: 'auto',
-                      maxHeight: { xs: 'none', lg: '60vh' },
-                      whiteSpace: 'pre',
-                    }}
-                  >
-                    {treeLines.join('\n')}
-                  </Box>
-                </CardContent>
-              </Card>
-            </Box>
-          )}
-        </Box>
-      )}
-
+      {/* Empty state */}
       {effectiveSource && step3.selectedColumn === NONE_VALUE && (
         <Box
           sx={{
@@ -363,8 +169,32 @@ export function Step3Panel() {
           }}
         >
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            Selecciona una columna para ver el catalogo de equipos
+            Seleccioná una columna para ver el catálogo de equipos
           </Typography>
+        </Box>
+      )}
+
+      {/* Catalog: validation banner + loop alert + DnD tree */}
+      {step3.catalog.length > 0 && (
+        <Box>
+          <ValidationSummaryBanner
+            total={summary.total}
+            valid={summary.valid}
+            invalid={summary.invalid}
+            hasErrors={summary.hasErrors}
+            label="equipos"
+          />
+
+          {summary.hasLoop && (
+            <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
+              Se detectó una dependencia circular en la jerarquía. Revisá los equipos padre asignados.
+            </Alert>
+          )}
+
+          <TeamHierarchyBuilder
+            catalog={step3.catalog}
+            onTeamChange={handleTeamChange}
+          />
         </Box>
       )}
     </Box>
