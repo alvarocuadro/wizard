@@ -15,9 +15,11 @@ import {
 import { ValidationSummaryBanner } from '../ui/ValidationSummaryBanner';
 import { SourceFileChoice } from './SourceFileChoice';
 import { CharCounterInput } from '../ui/CharCounterInput';
+import { SheetSelector } from '../ui/SheetSelector';
 import { useWizardContext } from '../../context/WizardContext';
 import { useColumnDetection } from '../../hooks/useColumnDetection';
 import { useRolesCatalog } from '../../hooks/useRolesCatalog';
+import { parseSheet } from '../../utils/workbookCache';
 import { NONE_VALUE } from '../../utils/constants';
 import type { FileParseResult, RoleCatalogItem } from '../../utils/types';
 
@@ -30,7 +32,7 @@ export function Step2Panel() {
 
   const effectiveSource =
     step2.sourceData.mode === 'same' && step1.source
-      ? step1.source
+      ? (step2.sourceData.sheetName ? step2.sourceData : step1.source)
       : step2.sourceData.headers.length > 0
       ? step2.sourceData
       : null;
@@ -53,7 +55,20 @@ export function Step2Panel() {
   }, []);
 
   function handleSameFile() {
-    dispatch({ type: 'S2_SET_SOURCE_DATA', payload: { mode: 'same', fileName: '', headers: [], rows: [] } });
+    dispatch({ type: 'S2_SET_SOURCE_DATA', payload: { mode: 'same', fileName: '', sheetName: '', sheetNames: [], headers: [], rows: [] } });
+    dispatch({ type: 'S2_SET_COLUMN', payload: NONE_VALUE });
+    dispatch({ type: 'S2_SET_CATALOG', payload: [] });
+    dispatch({ type: 'RESET_FROM_STEP', payload: 3 });
+    initialDetectDone.current = false;
+  }
+
+  function handleSheetChange(sheetName: string) {
+    const mode = step2.sourceData.mode;
+    const fileName = mode === 'same' ? (step1.source?.fileName ?? '') : step2.sourceData.fileName;
+    const sheetNames = mode === 'same' ? (step1.source?.sheetNames ?? []) : step2.sourceData.sheetNames;
+    const sheetData = parseSheet(fileName, sheetName);
+    if (!sheetData) return;
+    dispatch({ type: 'S2_SET_SOURCE_DATA', payload: { mode, fileName, sheetName, sheetNames, headers: sheetData.headers, rows: sheetData.rows } });
     dispatch({ type: 'S2_SET_COLUMN', payload: NONE_VALUE });
     dispatch({ type: 'S2_SET_CATALOG', payload: [] });
     dispatch({ type: 'RESET_FROM_STEP', payload: 3 });
@@ -132,6 +147,13 @@ export function Step2Panel() {
               step2.sourceData.mode === 'other' ? step2.sourceData.fileName : undefined
             }
           />
+          {effectiveSource && (
+            <SheetSelector
+              sheetNames={effectiveSource.sheetNames}
+              value={effectiveSource.sheetName}
+              onChange={handleSheetChange}
+            />
+          )}
         </CardContent>
       </Card>
 

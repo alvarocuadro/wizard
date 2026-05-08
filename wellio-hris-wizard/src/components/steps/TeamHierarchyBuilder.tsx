@@ -216,7 +216,7 @@ function LeadershipLegend() {
       <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
         <Chip label="Heredado" size="small" sx={LEADERSHIP_CHIP_SX('inherit')} />
         <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.4 }}>
-          No tiene líderes propios y depende del liderazgo del equipo superior.
+          No tiene líderes propios y depende del liderazgo del equipo superior. En el caso del equipo principal, no hereda de nadie: todos sus roles comparten el mismo nivel de liderazgo en la compañía (ej. directorio).
         </Typography>
       </Box>
     </Box>

@@ -13,9 +13,11 @@ import {
 } from '@mui/material';
 import { ValidationSummaryBanner } from '../ui/ValidationSummaryBanner';
 import { SourceFileChoice } from './SourceFileChoice';
+import { SheetSelector } from '../ui/SheetSelector';
 import { useWizardContext } from '../../context/WizardContext';
 import { useColumnDetection } from '../../hooks/useColumnDetection';
 import { useAssignmentsCatalog } from '../../hooks/useAssignmentsCatalog';
+import { parseSheet } from '../../utils/workbookCache';
 import { NONE_VALUE } from '../../utils/constants';
 import type { FileParseResult, AssignmentColumnMapping } from '../../utils/types';
 
@@ -28,7 +30,7 @@ export function Step4Panel() {
 
   const effectiveSource =
     step4.sourceData.mode === 'same' && step1.source
-      ? step1.source
+      ? (step4.sourceData.sheetName ? step4.sourceData : step1.source)
       : step4.sourceData.headers.length > 0
       ? step4.sourceData
       : null;
@@ -60,7 +62,20 @@ export function Step4Panel() {
   }, []);
 
   function handleSameFile() {
-    dispatch({ type: 'S4_SET_SOURCE_DATA', payload: { mode: 'same', fileName: '', headers: [], rows: [] } });
+    dispatch({ type: 'S4_SET_SOURCE_DATA', payload: { mode: 'same', fileName: '', sheetName: '', sheetNames: [], headers: [], rows: [] } });
+    dispatch({ type: 'S4_SET_COLUMN_MAPPING', payload: { member: NONE_VALUE, role: NONE_VALUE, team: NONE_VALUE } });
+    dispatch({ type: 'S4_SET_CATALOG', payload: [] });
+    dispatch({ type: 'RESET_FROM_STEP', payload: 5 });
+    initialDetectDone.current = false;
+  }
+
+  function handleSheetChange(sheetName: string) {
+    const mode = step4.sourceData.mode;
+    const fileName = mode === 'same' ? (step1.source?.fileName ?? '') : step4.sourceData.fileName;
+    const sheetNames = mode === 'same' ? (step1.source?.sheetNames ?? []) : step4.sourceData.sheetNames;
+    const sheetData = parseSheet(fileName, sheetName);
+    if (!sheetData) return;
+    dispatch({ type: 'S4_SET_SOURCE_DATA', payload: { mode, fileName, sheetName, sheetNames, headers: sheetData.headers, rows: sheetData.rows } });
     dispatch({ type: 'S4_SET_COLUMN_MAPPING', payload: { member: NONE_VALUE, role: NONE_VALUE, team: NONE_VALUE } });
     dispatch({ type: 'S4_SET_CATALOG', payload: [] });
     dispatch({ type: 'RESET_FROM_STEP', payload: 5 });
@@ -148,6 +163,13 @@ export function Step4Panel() {
               step4.sourceData.mode === 'other' ? step4.sourceData.fileName : undefined
             }
           />
+          {effectiveSource && (
+            <SheetSelector
+              sheetNames={effectiveSource.sheetNames}
+              value={effectiveSource.sheetName}
+              onChange={handleSheetChange}
+            />
+          )}
         </CardContent>
       </Card>
 

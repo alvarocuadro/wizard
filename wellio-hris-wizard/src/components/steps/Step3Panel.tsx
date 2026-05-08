@@ -13,9 +13,11 @@ import {
 import { ValidationSummaryBanner } from '../ui/ValidationSummaryBanner';
 import { SourceFileChoice } from './SourceFileChoice';
 import { TeamHierarchyBuilder } from './TeamHierarchyBuilder';
+import { SheetSelector } from '../ui/SheetSelector';
 import { useWizardContext } from '../../context/WizardContext';
 import { useColumnDetection } from '../../hooks/useColumnDetection';
 import { useTeamsCatalog } from '../../hooks/useTeamsCatalog';
+import { parseSheet } from '../../utils/workbookCache';
 import { NONE_VALUE } from '../../utils/constants';
 import type { FileParseResult, TeamCatalogItem } from '../../utils/types';
 
@@ -28,7 +30,7 @@ export function Step3Panel() {
 
   const effectiveSource =
     step3.sourceData.mode === 'same' && step1.source
-      ? step1.source
+      ? (step3.sourceData.sheetName ? step3.sourceData : step1.source)
       : step3.sourceData.headers.length > 0
         ? step3.sourceData
         : null;
@@ -48,8 +50,21 @@ export function Step3Panel() {
   function handleSameFile() {
     dispatch({
       type: 'S3_SET_SOURCE_DATA',
-      payload: { mode: 'same', fileName: '', headers: [], rows: [] },
+      payload: { mode: 'same', fileName: '', sheetName: '', sheetNames: [], headers: [], rows: [] },
     });
+    dispatch({ type: 'S3_SET_COLUMN', payload: NONE_VALUE });
+    dispatch({ type: 'S3_SET_CATALOG', payload: [] });
+    dispatch({ type: 'RESET_FROM_STEP', payload: 4 });
+    initialDetectDone.current = false;
+  }
+
+  function handleSheetChange(sheetName: string) {
+    const mode = step3.sourceData.mode;
+    const fileName = mode === 'same' ? (step1.source?.fileName ?? '') : step3.sourceData.fileName;
+    const sheetNames = mode === 'same' ? (step1.source?.sheetNames ?? []) : step3.sourceData.sheetNames;
+    const sheetData = parseSheet(fileName, sheetName);
+    if (!sheetData) return;
+    dispatch({ type: 'S3_SET_SOURCE_DATA', payload: { mode, fileName, sheetName, sheetNames, headers: sheetData.headers, rows: sheetData.rows } });
     dispatch({ type: 'S3_SET_COLUMN', payload: NONE_VALUE });
     dispatch({ type: 'S3_SET_CATALOG', payload: [] });
     dispatch({ type: 'RESET_FROM_STEP', payload: 4 });
@@ -134,6 +149,13 @@ export function Step3Panel() {
               step3.sourceData.mode === 'other' ? step3.sourceData.fileName : undefined
             }
           />
+          {effectiveSource && (
+            <SheetSelector
+              sheetNames={effectiveSource.sheetNames}
+              value={effectiveSource.sheetName}
+              onChange={handleSheetChange}
+            />
+          )}
         </CardContent>
       </Card>
 

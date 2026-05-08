@@ -23,7 +23,9 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { FileUploadZone } from '../ui/FileUploadZone';
 import { ValidationSummaryBanner } from '../ui/ValidationSummaryBanner';
+import { SheetSelector } from '../ui/SheetSelector';
 import { useFileParser } from '../../hooks/useFileParser';
+import { parseSheet } from '../../utils/workbookCache';
 import { useColumnDetection } from '../../hooks/useColumnDetection';
 import { useRowValidation } from '../../hooks/useRowValidation';
 import { useWizardContext } from '../../context/WizardContext';
@@ -146,9 +148,21 @@ export function Step1Panel() {
   }
 
   function handleChangeFile() {
-    dispatch({ type: 'S1_SET_SOURCE', payload: { fileName: '', headers: [], rows: [] } });
+    dispatch({ type: 'S1_SET_SOURCE', payload: { fileName: '', sheetName: '', sheetNames: [], headers: [], rows: [] } });
     dispatch({ type: 'S1_RESET_VALIDATION' });
     dispatch({ type: 'RESET_FROM_STEP', payload: 2 });
+  }
+
+  function handleSheetChange(sheetName: string) {
+    if (!step1.source) return;
+    const sheetData = parseSheet(step1.source.fileName, sheetName);
+    if (!sheetData) return;
+    const newSource = { ...step1.source, sheetName, headers: sheetData.headers, rows: sheetData.rows };
+    dispatch({ type: 'S1_SET_SOURCE', payload: newSource });
+    dispatch({ type: 'RESET_FROM_STEP', payload: 2 });
+    const mapping = detectMappings(sheetData.headers);
+    dispatch({ type: 'S1_SET_MAPPING', payload: mapping });
+    runValidation(sheetData.rows, sheetData.headers, mapping, step1.workModeValueMap, step1.defaultValues);
   }
 
   if (!step1.source || !step1.source.fileName) {
@@ -241,16 +255,22 @@ export function Step1Panel() {
     <Box>
       <Card variant="outlined" sx={{ mb: 3, borderRadius: 3 }}>
         <CardContent
-          sx={{ display: 'flex', alignItems: 'center', gap: 2, py: '12px !important', px: 2 }}
+          sx={{ display: 'flex', alignItems: 'center', gap: 2, py: '12px !important', px: 2, flexWrap: 'wrap' }}
         >
           <CheckCircleIcon color="success" />
-          <Box sx={{ flex: 1 }}>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
               {source.fileName}
             </Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
               {source.rows.length} filas · {source.headers.length} columnas detectadas
+              {source.sheetNames.length > 1 && ` · ${source.sheetNames.length} hojas`}
             </Typography>
+            <SheetSelector
+              sheetNames={source.sheetNames}
+              value={source.sheetName}
+              onChange={handleSheetChange}
+            />
           </Box>
           <Button
             size="small"

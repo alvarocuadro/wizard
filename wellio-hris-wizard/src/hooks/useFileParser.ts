@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import * as XLSX from 'xlsx';
-import type { FileParseResult, CellValue } from '../utils/types';
+import { cacheWorkbook, parseSheet } from '../utils/workbookCache';
+import type { FileParseResult } from '../utils/types';
 
 interface UseFileParserReturn {
   parse: (file: File) => Promise<FileParseResult>;
@@ -19,36 +20,30 @@ export function useFileParser(): UseFileParserReturn {
     try {
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-      const firstSheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[firstSheetName];
-      const rawRows = XLSX.utils.sheet_to_json<CellValue[]>(sheet, {
-        header: 1,
-        defval: '',
-        raw: true,
-        blankrows: false,
-      }) as CellValue[][];
+      cacheWorkbook(file.name, workbook);
 
-      const firstNonEmptyIdx = rawRows.findIndex(
-        (row) => Array.isArray(row) && row.some((cell) => String(cell ?? '').trim() !== '')
-      );
+      const sheetNames = workbook.SheetNames;
 
-      if (firstNonEmptyIdx === -1) {
-        throw new Error('No se detectaron encabezados en la primera fila útil del archivo.');
+      // Auto-detect: first sheet that has at least one non-empty header
+      let selectedSheet = sheetNames[0];
+      for (const name of sheetNames) {
+        const result = parseSheet(file.name, name);
+        if (result && result.headers.some((h) => h !== '')) {
+          selectedSheet = name;
+          break;
+        }
       }
 
-      const headers = (rawRows[firstNonEmptyIdx] as CellValue[]).map((cell) =>
-        String(cell ?? '').trim()
-      );
+      const sheetData = parseSheet(file.name, selectedSheet);
+      if (!sheetData) throw new Error('No se pudo leer la hoja seleccionada.');
+
+      const { headers, rows } = sheetData;
 
       if (!headers.some((h) => h !== '')) {
         throw new Error('No se detectaron encabezados válidos.');
       }
 
-      const rows = rawRows
-        .slice(firstNonEmptyIdx + 1)
-        .filter((row) => Array.isArray(row) && row.some((cell) => String(cell ?? '').trim() !== ''));
-
-      return { fileName: file.name, headers, rows };
+      return { fileName: file.name, sheetName: selectedSheet, sheetNames, headers, rows };
     } catch (e) {
       const msg =
         e instanceof Error

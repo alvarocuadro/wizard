@@ -14,6 +14,8 @@ export interface WorkModeValueMap {
 
 export interface FileParseResult {
   fileName: string;
+  sheetName: string;
+  sheetNames: string[];
   headers: string[];
   rows: CellValue[][];
 }
@@ -21,6 +23,8 @@ export interface FileParseResult {
 export interface StepSourceData {
   mode: SourceMode;
   fileName: string;
+  sheetName: string;
+  sheetNames: string[];
   headers: string[];
   rows: CellValue[][];
 }

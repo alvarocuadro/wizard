@@ -4,6 +4,8 @@ import type { WizardState, StepSourceData } from '../utils/types';
 export const EMPTY_SOURCE_DATA: StepSourceData = {
   mode: 'same',
   fileName: '',
+  sheetName: '',
+  sheetNames: [],
   headers: [],
   rows: [],
 };
